@@ -118,6 +118,14 @@ namespace GHWind
 
         public bool Run()
         {
+
+            if (xyzsize.Count == 0)
+            {
+                Rhino.RhinoApp.WriteLine("Error");
+                return false;
+            }
+
+                
             run = true;
 
             counter = 0;
