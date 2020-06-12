@@ -294,8 +294,19 @@ namespace GHWind
 
                 if (calcres) File.AppendAllText(residualstxt, "pmin; pmax; pavg; umin; umax; uavg; vmin; vmax; vavg; wmin; wmax; wavg;\n");
 
+# region whileloop
+
                 while (t < t_end)
                 {
+
+                    if (GH_Document.IsEscapeKeyDown())
+                    {
+                        Rhino.RhinoApp.WriteLine("Cancelled by user");
+                        GH_Document GHDocument = OnPingDocument();
+                        GHDocument.RequestAbortSolution();
+                        break;
+                    }
+
                     Rhino.RhinoApp.WriteLine(Convert.ToString(t) + " of " + Convert.ToString(t_end));
 
                     double[,,] p_t2 = new double[ffd.p.GetLength(0), ffd.p.GetLength(1), ffd.p.GetLength(2)];
@@ -342,6 +353,8 @@ namespace GHWind
                     t += dt;
                     timestep++;
                 }
+#endregion whileloop
+
 
                 //averaging results 
                 FluidSolver ffd_mean = new FluidSolver(ffd);

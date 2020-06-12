@@ -38,15 +38,13 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\GSoC_FFD\FastFluidSolverMT\bin\Debug\FastFluidSolverMT.dll</HintPath>
     </Reference>
+    <Reference Include="RhinoCommon">
+      <HintPath>..\..\..\..\..\..\Program Files\Rhino 6\System\RhinoCommon.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
-    <Reference Include="RhinoCommon">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>c:\Program Files (x86)\Rhinoceros 5\System\rhinocommon.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="Grasshopper">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>C:\Program Files\Common Files\McNeel\Rhinoceros\5.0\Plug-ins\Grasshopper (b45a29b1-4343-4035-989e-044e8580d9cf)\0.9.76.0\Grasshopper.dll</HintPath>
@@ -60,14 +58,17 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Domains.cs" />
+    <Compile Include="FFDSolver.cs" />
     <Compile Include="GHDiscrMesh.cs" />
     <Compile Include="GHExportGeometry.cs" />
     <Compile Include="GHFFDliddrivencavity.cs" />
     <Compile Include="GHFFDSolver.cs" />
+    <Compile Include="GHFFDSolverAsync.cs" />
     <Compile Include="GHFFDSolverAytac.cs" />
     <Compile Include="GHFFDSolverV2.cs" />
     <Compile Include="GHFFDSolverWentao.cs" />
     <Compile Include="GHPrintCellValues.cs" />
+    <Compile Include="GHtestAsync.cs" />
     <Compile Include="GHVisualizeCp.cs" />
     <Compile Include="GHVisualizerField.cs" />
     <Compile Include="GHVisualizerVectors.cs" />
