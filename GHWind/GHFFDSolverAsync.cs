@@ -8,6 +8,8 @@ using Rhino.Geometry;
 
 namespace GHWind
 {
+
+
     public class GHFFDSolverAsync : GH_Component
     {
         /// <summary>
@@ -99,14 +101,15 @@ namespace GHWind
             pManager.AddGenericParameter("DE", "DE", "Data Extractor, containing omega and FFD classes", GH_ParamAccess.item);
             //#5
             pManager.AddGenericParameter("obst domain", "obst domain", "Boolean array indicating obstacle cell (1) or fluid cell (0) of the entire domain.", GH_ParamAccess.item);
+            pManager.AddGenericParameter("ffdSolver", "ffdSolver", "ffdSolver", GH_ParamAccess.item);
 
             // pManager.AddTextParameter("VTK path", "VTK path", "Output path of VTK results file", GH_ParamAccess.item);
         }
 
-        
+        FFDSolver ffdSolver = new FFDSolver();
 
 
-        
+
         double[,,] pstagResults;
         bool skipSolution;
         bool componentBusy;
@@ -127,7 +130,7 @@ namespace GHWind
             DataExtractor de;
 
             double t;
-            bool resetFFD;
+            bool resetFFD = false;
 
 
             // current filepath
@@ -183,7 +186,8 @@ namespace GHWind
             DA.GetData(9, ref writeVTK);
 
 
-            //DA.GetData(10, ref resetFFD);
+            DA.GetData(10, ref resetFFD);
+
 
             bool calcres = false;
             DA.GetData(12, ref calcres);
@@ -198,26 +202,25 @@ namespace GHWind
             if (strparam != null) str_params = strparam.Split(';');
 
 
-            FFDSolver ffdSolver = new FFDSolver();
 
 
 
 
 
-            if (skipSolution)
+
+            if (skipSolution || run == false)
             {
                 skipSolution = false;
                 DA.IncrementIteration();
 
-
-                //DA.SetDataList(0, ffdSolver.veloutCen);
-                //DA.SetData(1, ffdSolver.p);
-                //DA.SetDataList(2, ffdSolver.veloutStag);
+                DA.SetDataList(0, ffdSolver.veloutCen);
+                DA.SetData(1, ffdSolver.p);
+                DA.SetDataList(2, ffdSolver.veloutStag);
                 //DA.SetData(3, ffdSolver.pstag);
                 DA.SetData(3, pstagResults);
-                //DA.SetData(4, ffdSolver.de);
-                //DA.SetData(5, ffdSolver.omega.obstacle_cells);
-
+                DA.SetData(4, ffdSolver.de);
+                DA.SetData(5, ffdSolver.omega.obstacle_cells);
+                DA.SetData(6, ffdSolver);
 
                 Grasshopper.Instances.RedrawAll();
             }
@@ -225,32 +228,35 @@ namespace GHWind
             {
                 DA.DisableGapLogic();
 
-                //Brep BBox = null;
-                //if (!DA.GetData(0, ref BBox)) return;
+                if (resetFFD || ffdSolver.xyzsize.Count == 0)
+                {
+                    Rhino.RhinoApp.Write("RESET");
+                    ffdSolver.run = false;
+                    ffdSolver = new FFDSolver(
+                        this.OnPingDocument().FilePath,
+                        Nxyz,
+                        xyzsize,
+                        geom,
+                        t_end,
+                        Vmet,
+                        terrain,
+                        strparam
+                        );
+                }
+
+                Task<bool> computingTask = new Task<bool>(() => ffdSolver.Run());
 
 
-                ffdSolver = new FFDSolver(
-                    this.OnPingDocument().FilePath,
-                    geom,
-                    t_end,
-                    Vmet,
-                    terrain,
-                    strparam
-                    );
-
-                
-
-                Task<double[,,]> computingTask = new Task<double[,,]>(() => ffdSolver.Run());
                 computingTask.ContinueWith(r =>
                 {
                     if (r.Status == TaskStatus.RanToCompletion)
                     {
-                        double[,,] pstag = computingTask.Result;
-                        if (pstag != null)
+                        bool result = computingTask.Result;
+                        if (result == true)
                         {
                             NickName = "Task Finished!";
                             skipSolution = true;
-                            pstagResults = pstag;
+                            pstagResults = ffdSolver.pstag;
                             ExpireSolution(false);
                             Grasshopper.Instances.ActiveCanvas.Document.NewSolution(false);
                         }
@@ -260,21 +266,32 @@ namespace GHWind
                             Grasshopper.Instances.RedrawAll();
                         }
                         componentBusy = false;
+                        //DA.SetData(6, ffdSolver);
                     }
                     else if (r.Status == TaskStatus.Faulted)
                     {
-                        NickName = "Task Failed.";
+                        NickName = "Task Faulted.";
                         Grasshopper.Instances.RedrawAll();
                         componentBusy = false;
+                        //DA.SetData(6, ffdSolver);
                     }
+
+
                 },
-                TaskScheduler.FromCurrentSynchronizationContext());
-                computingTask.Start();
-                NickName = "Processing...";
-                Grasshopper.Instances.RedrawAll();
-                componentBusy = true;
+                TaskScheduler.FromCurrentSynchronizationContext()
+
+                );
+
+                    
+                    computingTask.Start();
+                    NickName = "Processing...";
+                    Grasshopper.Instances.RedrawAll();
+                    componentBusy = true;
+                
             }
         }
+            
+        
 
         /// <summary>
         /// Provides an Icon for the component.

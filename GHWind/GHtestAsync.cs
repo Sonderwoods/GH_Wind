@@ -56,10 +56,10 @@ namespace GHWind
                 Brep BBox = null;
                 if (!DA.GetData(0, ref BBox)) return;
 
-                someComputingEngine = new SomeComputingEngine();
+                //someComputingEngine = new SomeComputingEngine();
 
-                Task<Polyline> computingTask = new Task<Polyline>(() => someComputingEngine.GenerateThePath(BBox));
-                computingTask.ContinueWith(r =>
+                //Task<Polyline> computingTask = new Task<Polyline>(() => someComputingEngine.GenerateThePath(BBox));
+                //computingTask.ContinueWith(r =>
                 {
                     if (r.Status == TaskStatus.RanToCompletion)
                     {
@@ -87,7 +87,7 @@ namespace GHWind
                     }
                 },
                 TaskScheduler.FromCurrentSynchronizationContext());
-                computingTask.Start();
+                //computingTask.Start();
                 NickName = "Processing...";
                 Grasshopper.Instances.RedrawAll();
                 componentBusy = true;

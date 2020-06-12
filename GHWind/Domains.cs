@@ -44,6 +44,8 @@ namespace GHWind
         public WindInflow(int Nx, int Ny, int Nz, double length_x,
             double length_y, double length_z, double Vmet, int terrain)
         {
+
+            
             this.Nx = Nx;
             this.Ny = Ny;
             this.Nz = Nz;
@@ -77,7 +79,7 @@ namespace GHWind
 
             //set outflow boundaries
             //x = 0 will be inflow, z = 0 will be solid ground, all others will be outflow            
-
+            
             //x outflow
             Parallel.For(1, Ny - 1, j =>
             {
@@ -106,6 +108,7 @@ namespace GHWind
                 }
             });
 
+            
             double TerrainDelta = 210;
             double TerrainAlpha = 0.1;
             switch (terrain)
@@ -136,9 +139,10 @@ namespace GHWind
                     boundary_u[0, j, k] = Vmet * Math.Pow(TerrainDelta / 10, TerrainAlpha) * Math.Pow(Math.Max((z / TerrainDelta), 0), TerrainAlpha);
                 }
             });
-
+            
             set_ghost_flags();
             set_boundary_flags();
+            
         }
 
         /// <summary>
