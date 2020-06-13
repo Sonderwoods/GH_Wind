@@ -9,6 +9,9 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Runtime.CompilerServices;
 
+// GH_Wind by Christoph Waibel.
+// https://github.com/christophwaibel/GH_Wind
+
 namespace GHWind
 {
     public class FFDSolver
