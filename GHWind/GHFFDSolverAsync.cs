@@ -1,10 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.Remoting.Messaging;
 using System.Threading.Tasks;
 using FastFluidSolverMT;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
+
+// GH_Wind by Christoph Waibel.
+// asynch version by Mathias Sønderskov Schaltz 2020, based on principles from:
+// http://fucture.org/matas-ubarevicius/2016/05/23/async-grasshopper-components/#comment-52509
 
 namespace GHWind
 {
@@ -21,6 +26,7 @@ namespace GHWind
               "Category", "Subcategory")
         {
         }
+
 
         double[,,] p;
         List<double[,,]> veloutCen;
@@ -81,6 +87,10 @@ namespace GHWind
             //#13
             pManager.AddIntegerParameter("mean_dt", "mean_dt", "m*dt for outputting mean flow field (instead of snapshot). m should be identified by observing the residuals. Default is m=10.", GH_ParamAccess.item);
             pManager[13].Optional = true;
+
+            //#14
+            pManager.AddBooleanParameter("stop", "stop", "stop", GH_ParamAccess.item, false);
+            pManager[14].Optional = true;
         }
 
 
@@ -102,6 +112,8 @@ namespace GHWind
             //#5
             pManager.AddGenericParameter("obst domain", "obst domain", "Boolean array indicating obstacle cell (1) or fluid cell (0) of the entire domain.", GH_ParamAccess.item);
             pManager.AddGenericParameter("ffdSolver", "ffdSolver", "ffdSolver", GH_ParamAccess.item);
+            pManager.AddGenericParameter("domain", "domain", "domain", GH_ParamAccess.item);
+            pManager.AddGenericParameter("fs", "fs", "fs", GH_ParamAccess.item);
 
             // pManager.AddTextParameter("VTK path", "VTK path", "Output path of VTK results file", GH_ParamAccess.item);
         }
@@ -126,11 +138,11 @@ namespace GHWind
 
             string filepath;
 
-            Domain omega;
-            FluidSolver ffd;
+            //Domain omega;
+            //FluidSolver ffd;
             //DataExtractor de;
 
-            double t;
+            //double t;
             bool resetFFD = false;
 
 
@@ -203,13 +215,28 @@ namespace GHWind
             if (strparam != null) str_params = strparam.Split(';');
 
 
+            bool addResiduals = true;
+            DA.GetData(12, ref addResiduals);
+
+            int meanDt = 10;
+            DA.GetData(13, ref meanDt);
+
+            bool stop = false;
+            DA.GetData(14, ref stop);
 
 
+            if (stop)
+            {
+                ffdSolver.StopRun();
+                //running[0] = false;
+                //Rhino.RhinoApp.WriteLine("stoprun()");
+
+                //computingTask.Dispose();
+                //Rhino.RhinoApp.WriteLine("dispose()");
+            }
 
 
-
-
-            if (skipSolution || run == false)
+            if (skipSolution && run == false)
             {
                 skipSolution = false;
                 DA.IncrementIteration();
@@ -222,7 +249,9 @@ namespace GHWind
                 DA.SetData(4, de);
                 DA.SetData(5, obstacle_cells);
                 DA.SetData(6, ffdSolver);
-
+                DA.SetData(7, ffdSolver.omega);
+                DA.SetData(8, ffdSolver.ffd);
+                //Rhino.RhinoApp.WriteLine("trying to update outputs");
                 Grasshopper.Instances.RedrawAll();
             }
             else if (!componentBusy)
@@ -244,24 +273,54 @@ namespace GHWind
                 //        );
 
                 //}
-
-                if(run)
+                bool returnSomething()
                 {
-                    Rhino.RhinoApp.Write("RESET");
-                    ffdSolver.run = false;
-                    ffdSolver = new FFDSolver(
-                        this.OnPingDocument().FilePath,
-                        Nxyz,
-                        xyzsize,
-                        geom,
-                        t_end,
-                        Vmet,
-                        terrain,
-                        strparam
-                        );
+                    return true;
                 }
 
-                Task<bool> computingTask = new Task<bool>(() => ffdSolver.Run());
+                Task<bool> computingTask = new Task<bool>(() => returnSomething());
+
+                if (resetFFD)
+                {
+                    ffdSolver = new FFDSolver(
+                    this.OnPingDocument().FilePath,
+                    Nxyz,
+                    xyzsize,
+                    geom,
+                    t_end,
+                    dt,
+                    meanDt,
+                    Vmet,
+                    terrain,
+                    strparam
+                  );
+                }
+
+                if (run)
+                {
+                    
+                    ffdSolver.run = false;
+                    if (ffdSolver.dt == 0.0) //we know it's empty.
+                    {
+                        ffdSolver = new FFDSolver(
+                       this.OnPingDocument().FilePath,
+                       Nxyz,
+                       xyzsize,
+                       geom,
+                       t_end,
+                       dt,
+                       meanDt,
+                       Vmet,
+                       terrain,
+                       strparam
+                       );
+                    }
+                   
+
+                    computingTask = new Task<bool>(() => ffdSolver.Run());
+                }
+
+                
 
 
                 computingTask.ContinueWith(r =>
@@ -271,6 +330,7 @@ namespace GHWind
                         bool result = computingTask.Result;
                         if (result == true)
                         {
+                            //Rhino.RhinoApp.WriteLine("outputting");
                             NickName = "Task Finished!";
                             skipSolution = true;
 
@@ -292,6 +352,7 @@ namespace GHWind
                         }
                         else
                         {
+                            Rhino.RhinoApp.WriteLine("failed");
                             NickName = "Task Failed.";
                             Grasshopper.Instances.RedrawAll();
                         }
@@ -319,10 +380,15 @@ namespace GHWind
                     Grasshopper.Instances.RedrawAll();
                     componentBusy = true;
 
-                if (resetFFD)
-                {
-                    computingTask.Dispose();
-                }
+                //if (stop)
+                //{
+                //    ffdSolver.StopRun();
+
+                //    Rhino.RhinoApp.WriteLine("stoprun()");
+                    
+                //    computingTask.Dispose();
+                //    Rhino.RhinoApp.WriteLine("dispose()");
+                //}
                 }
         }
             

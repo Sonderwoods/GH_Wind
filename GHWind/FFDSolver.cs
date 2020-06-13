@@ -15,7 +15,7 @@ namespace GHWind
     {
 
         public string filepath = String.Empty;
-        public double dt = 0.1;
+        public double dt = 0.0;
         public List<double> xyzsize = new List<double>();
         public List<int> Nxyz  = new List<int>();
         public List<double[]> geom  = new List<double[]>();
@@ -66,11 +66,12 @@ namespace GHWind
         string strparam = null;
         string[] str_params = null;
 
+
         int counter = 0;
         int timestep = 0;
 
 
-        FluidSolver ffd;
+        public FluidSolver ffd;
 
 
         double t;
@@ -80,8 +81,9 @@ namespace GHWind
         {
         }
 
-        public FFDSolver(string filepath, List<int> Nxyz, List<double> xyzsize, List<double[]> geom,  double t_end, double Vmet = 10, int terrain = 0, string strparam = "")
+        public FFDSolver(string filepath, List<int> Nxyz, List<double> xyzsize, List<double[]> geom,  double t_end, double dt, int meanDt, double Vmet = 10, int terrain = 0, string strparam = "")
         {
+            m = meanDt;
             Rhino.RhinoApp.WriteLine("established with long overload");
             this.filepath = filepath;
             residualstxt = filepath + @"\\residual.txt";
@@ -102,6 +104,8 @@ namespace GHWind
             Nx = Nxyz[0];
             Ny = Nxyz[1];
             Nz = Nxyz[2];
+ 
+            this.dt = dt;
             this.geom = geom;
             this.t_end = t_end;
             this.Vmet = Vmet;
@@ -113,6 +117,9 @@ namespace GHWind
         public void StopRun()
         {
             run = false;
+            //Rhino.RhinoApp.WriteLine("pickedup the stop!");
+            
+            
 
         }
 
@@ -180,7 +187,7 @@ namespace GHWind
             f_y = new double[Nx + 2, Ny + 1, Nz + 2];
             f_z = new double[Nx + 2, Ny + 2, Nz + 1];
 
-            Rhino.RhinoApp.WriteLine("M0004x");
+            
 
 
             // Create FFD solver and domain
@@ -196,7 +203,7 @@ namespace GHWind
                 omega = new WindInflow(Nx + 2, Ny + 2, Nz + 2, xyzsize[0], xyzsize[1], xyzsize[2], Vmet, terrain);
             }
 
-            Rhino.RhinoApp.WriteLine("M0005");
+            //Rhino.RhinoApp.WriteLine("M0005");
 
             foreach (double[] geo in geom)
             {
@@ -204,13 +211,13 @@ namespace GHWind
                 omega.add_obstacle(geo[0], geo[1], geo[2], geo[3], geo[4], geo[5]);
             }
 
-            Rhino.RhinoApp.WriteLine("M0005a");
+            //Rhino.RhinoApp.WriteLine("M0005a");
 
             ffd = new FluidSolver(omega, dt, nu, u0, v0, w0, solver_params);
             de = new DataExtractor(omega, ffd);
             t = 0;
 
-            Rhino.RhinoApp.WriteLine("M0006");
+            //Rhino.RhinoApp.WriteLine("M0006");
 
             pp = new PostProcessor(ffd, omega);
 
@@ -239,7 +246,7 @@ namespace GHWind
 
                 while (t < t_end)
                 {
-
+                    
                     if (GH_Document.IsEscapeKeyDown())
                     {
                         Rhino.RhinoApp.WriteLine("Cancelled by user");
@@ -326,7 +333,7 @@ namespace GHWind
                 de = new DataExtractor(omega, ffd_mean);
 
             }
-
+            writeresults = true;
 
             // *******************************************************************************************
             // Redraw on or off
