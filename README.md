@@ -1,3 +1,20 @@
+# Asynchronous version!
+I've played around with this tool to make it work asynchronously.
+
+Take a look at the following files
+
+(Work in progress)
+
+https://github.com/Sonderwoods/GH_Wind/tree/master/Tutorials/Asynchronous_test.gh
+https://github.com/Sonderwoods/GH_Wind/GHWind/GHFFDSolver.cs
+https://github.com/Sonderwoods/GH_Wind/GHWind/GHFFDSolverAsync.cs
+
+
+
+All credit goes to GH_Wind by Christoph Waibel
+https://github.com/christophwaibel/GH_Wind
+
+
 # GH_Wind
 Wind Simulation (FFD) plugin for Rhinoceros Grasshopper.
 
