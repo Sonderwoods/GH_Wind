@@ -1,16 +1,18 @@
 # Asynchronous version!
 I've played around with this tool to make it work asynchronously.
 
-Take a look at the following files
 
-(Work in progress)
+#Download plugin here (work in progress):
+https://github.com/Sonderwoods/GH_Wind/Release/GHWind.gha
+https://github.com/Sonderwoods/GH_Wind/Release/FastFluidSolverMT.dll
 
+(Source files changed)
 https://github.com/Sonderwoods/GH_Wind/tree/master/Tutorials/Asynchronous_test.gh
 https://github.com/Sonderwoods/GH_Wind/GHWind/GHFFDSolver.cs
 https://github.com/Sonderwoods/GH_Wind/GHWind/GHFFDSolverAsync.cs
 
-Download plugin here:
-https://github.com/Sonderwoods/GH_Wind/GHWind/bin/GHWind.gha
+
+
 
 
 All credit goes to GH_Wind by Christoph Waibel
