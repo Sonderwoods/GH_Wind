@@ -39,6 +39,7 @@ namespace GHWind
             switch (colourSheme)
             {
                 case 0:
+                    quantity = (quantity - low) / (top - low);
                     if (quantity > third && quantity <=  2.0 * third)
                     {
                         RR = (quantity - third) * (255.0 / third);
@@ -59,6 +60,7 @@ namespace GHWind
                     }
                     break;
                 case 1:
+                    quantity = (quantity - low) / (top - low);
                     third = 1.0 / 3.0;
                     if (quantity > third && quantity <= 2.0 * third)
                     {
@@ -80,9 +82,10 @@ namespace GHWind
                     }
                     break;
                 case 2:
-                    RR = 0.0;
-                    GG = 0.0;
-                    BB = 0.0;
+                    //quantity = quantity;
+                    RR = quantity*255.0/2.0;
+                    GG = quantity * 255.0 / 2.0;
+                    BB = quantity * 255.0 / 2.0;
                     break;
             }
 

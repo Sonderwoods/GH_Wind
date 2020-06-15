@@ -1,10 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.Remoting.Messaging;
 using System.Threading.Tasks;
 using FastFluidSolverMT;
+using GH_IO.Serialization;
+using Grasshopper;
 using Grasshopper.Kernel;
+using Grasshopper.Kernel.Data;
+using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
 
 // GH_Wind by Christoph Waibel.
@@ -15,13 +20,13 @@ namespace GHWind
 {
 
 
-    public class GHFFDSolverAsync : GH_Component
+    public class GHFFDSolverAsyncMulti : GH_Component
     {
         /// <summary>
         /// Initializes a new instance of the GHFFDSolverAsync class.
         /// </summary>
-        public GHFFDSolverAsync()
-          : base("GHFFDSolverAsync", "Nickname",
+        public GHFFDSolverAsyncMulti()
+          : base("GHFFDSolverAsyncMulti", "GHFFDSolverAsyncMulti",
               "Description",
               "Category", "Subcategory")
         {
@@ -34,6 +39,8 @@ namespace GHWind
         double[,,] pstag;
         DataExtractor de;
         int[,,] obstacle_cells;
+        List<List<double[]>> allGeometryDoubles = new List<List<double[]>>();
+        Point3d origin = new Point3d();
 
 
         /// <summary>
@@ -47,7 +54,8 @@ namespace GHWind
             //later make another input for defining more precisely the domain. like, internal flow, external flow, inflows, outflows...)
 
             //#2
-            pManager.AddGenericParameter("Geometry", "Geometry", "Geometry as list of doubles [6] {xmin, xmax, ymin, ymax, zmin, zmax}, representing the obstacle cubes.", GH_ParamAccess.list);
+            pManager.AddGenericParameter("OLD Geometry", "OLD Geometry", "Geometry as list of doubles [6] {xmin, xmax, ymin, ymax, zmin, zmax}, representing the obstacle cubes.", GH_ParamAccess.list);
+            pManager[2].Optional = true;
 
             //#3
             pManager.AddNumberParameter("Time Step", "dt", "Calculation time step dt.", GH_ParamAccess.item);
@@ -95,6 +103,14 @@ namespace GHWind
             //#15
             pManager.AddBooleanParameter("update", "update", "update", GH_ParamAccess.item, false);
             pManager[15].Optional = true;
+
+            //#16
+            pManager.AddGenericParameter("Boxes", "Boxes", "Boxes tree'd", GH_ParamAccess.tree);
+            pManager[16].Optional = true;
+
+            //#17
+            pManager.AddPointParameter("origin", "origin", "origin point ", GH_ParamAccess.item);
+            //pManager[16].Optional = true;
         }
 
 
@@ -106,6 +122,8 @@ namespace GHWind
             //#0,1
             pManager.AddGenericParameter("v centred", "v centred", "velocities, cell centred", GH_ParamAccess.list);
             pManager.AddGenericParameter("p centred", "p centred", "pressure, cell centred", GH_ParamAccess.item);
+            //((IGH_PreviewObject)pManager[0]).Hidden = true;
+
 
             //#2,3
             pManager.AddGenericParameter("v staggered", "v staggered", "velocities, on staggered grid", GH_ParamAccess.list);
@@ -115,21 +133,91 @@ namespace GHWind
             pManager.AddGenericParameter("DE", "DE", "Data Extractor, containing omega and FFD classes", GH_ParamAccess.item);
             //#5
             pManager.AddGenericParameter("obst domain", "obst domain", "Boolean array indicating obstacle cell (1) or fluid cell (0) of the entire domain.", GH_ParamAccess.item);
-            pManager.AddGenericParameter("ffdSolver", "ffdSolver", "ffdSolver", GH_ParamAccess.item);
+            //#6
+            pManager.AddGenericParameter("ffdSolver", "ffdSolver", "ffdSolver", GH_ParamAccess.list);
+            //#7
             pManager.AddGenericParameter("domain", "domain", "domain", GH_ParamAccess.item);
+            //#8
             pManager.AddGenericParameter("fs", "fs", "fs", GH_ParamAccess.item);
 
             // pManager.AddTextParameter("VTK path", "VTK path", "Output path of VTK results file", GH_ParamAccess.item);
         }
 
         FFDSolver oldFFDSolver;
+        List<FFDSolver> ffdSolvers = new List<FFDSolver>();
         FFDSolver ffdSolver = new FFDSolver();
+
+
 
 
 
         double[,,] pstagResults;
         bool skipSolution;
         bool componentBusy;
+
+
+
+
+            bool RunAll()
+        {
+            Rhino.RhinoApp.WriteLine($"== STARTALL == (ffdSolver count = {ffdSolvers.Count})");
+
+            for (int i = 0; i < ffdSolvers.Count; i++)
+            {
+                Rhino.RhinoApp.WriteLine($"== STARTING ==  starting {i}");
+                ffdSolvers[i].Run();
+                Rhino.RhinoApp.WriteLine($"== FINISHING == {i}");
+            }
+            return true;
+
+        }
+
+        bool CreateAll(string filepath, List<int> Nxyz, List<double> xyzsize, double t_end, double dt, int meanDt, double Vmet = 10, int terrain = 0, string strparam = "")
+        {
+            Rhino.RhinoApp.WriteLine($"== CREATE ALL == (allGeometryDoubles.Count = {allGeometryDoubles.Count})");
+            
+
+            StopAll();
+
+            ffdSolvers = new List<FFDSolver>();
+            FFDSolver.ID = 0;
+
+            for (int i = 0; i < allGeometryDoubles.Count; i++)
+            {
+
+                Rhino.RhinoApp.WriteLine($"== creating == {i} (allGeometryDoubles.Count = {allGeometryDoubles.Count})");
+                ffdSolvers.Add(new FFDSolver(
+                    this.OnPingDocument().FilePath,
+                    Nxyz,
+                    xyzsize,
+                    allGeometryDoubles[i],
+                    t_end,
+                    dt,
+                    meanDt,
+                    Vmet,
+                    terrain,
+                    strparam
+                  ));
+
+
+
+
+            }
+            return true;
+
+        }
+
+        bool StopAll()
+        {
+            for (int i = 0; i < ffdSolvers.Count; i++)
+            {
+                ffdSolvers[i].run = false;
+                ffdSolvers[i].StopRun();
+            }
+            
+            return true;
+
+        }
 
         /// <summary>
         /// This is the method that actually does the work.
@@ -138,6 +226,8 @@ namespace GHWind
         /// 
         protected override void SolveInstance(IGH_DataAccess DA)
         {
+
+
 
 
             string filepath;
@@ -168,18 +258,18 @@ namespace GHWind
             int Nz = Nxyz[2];
 
 
+            GH_Structure<IGH_Goo> geomTree = new GH_Structure<IGH_Goo>();
+
+
+
+            //List<List<double[]>> allGeometryDoubles = new List<List<double[]>>();
+
+
             List<double[]> geom = new List<double[]>();
             if (!DA.GetDataList(2, geom)) { return; };
-
-            for (int i = 0; i < geom.Count; i++)
-            {
-                double[] geo = geom[i];
-                Rhino.RhinoApp.WriteLine($"[{i}] {geo[0]}, {geo[1]}, {geo[2]}, {geo[3]}, {geo[4]}, {geo[5]}");
-                if (i == 10)
-                    break;
-            }
-
-
+            //if (!DA.GetDataTree(16, out geomTree)) { return; }
+            DA.GetDataTree(16, out geomTree);
+            
 
             // time step
             double dt = 0.1;
@@ -214,15 +304,17 @@ namespace GHWind
 
             DA.GetData(10, ref resetFFD);
 
-
-            bool calcres = false;
-            DA.GetData(12, ref calcres);
-
-            int m = 10;
-            DA.GetData(13, ref m);
-
             string strparam = null;
             DA.GetData(11, ref strparam);
+
+
+            //bool calcres = false;
+            //DA.GetData(12, ref calcres);
+
+            //int m = 10;
+            //DA.GetData(13, ref m);
+
+
 
             string[] str_params = null;
             if (strparam != null) str_params = strparam.Split(';');
@@ -240,10 +332,14 @@ namespace GHWind
             bool update = false;
             DA.GetData(15, ref update);
 
+            DA.GetData(17, ref origin);
+
 
             if (stop)
             {
-                ffdSolver.StopRun();
+
+                //ffdSolver.StopRun();
+                StopAll();
                 //running[0] = false;
                 //Rhino.RhinoApp.WriteLine("stoprun()");
 
@@ -252,7 +348,8 @@ namespace GHWind
             }
 
 
-            if ((skipSolution && run == false) || update)
+
+            if (skipSolution && (run == false || update))
             {
                 skipSolution = false;
                 DA.IncrementIteration();
@@ -264,9 +361,9 @@ namespace GHWind
                 //DA.SetData(3, pstagResults);
                 //DA.SetData(4, de);
                 //DA.SetData(5, obstacle_cells);
-                DA.SetData(6, ffdSolver);
-                DA.SetData(7, ffdSolver.omega);
-                DA.SetData(8, ffdSolver.ffd);
+                DA.SetDataList(6, ffdSolvers);
+                //DA.SetData(7, ffdSolver.omega);
+                //DA.SetData(8, ffdSolver.ffd);
                 //Rhino.RhinoApp.WriteLine("trying to update outputs");
                 Grasshopper.Instances.RedrawAll();
             }
@@ -289,51 +386,125 @@ namespace GHWind
                 //        );
 
                 //}
-                bool returnSomething()
+
+                bool ReturnSomething()
                 {
                     return true;
                 }
 
-                Task<bool> computingTask = new Task<bool>(() => returnSomething());
+                Task<bool> computingTask = new Task<bool>(() => ReturnSomething());
+
+
+
+
+                allGeometryDoubles = new List<List<double[]>>();
+
+                Rhino.RhinoApp.WriteLine($"geomTree.PathCount = {geomTree.PathCount}");
+                for (int i = 0; i < geomTree.PathCount; i++)
+                {
+                    List<double[]> geometryDoublesPerDirection = new List<double[]>();
+                    Box box = new Box();
+                    for (int j = 0; j < geomTree.Branches[i].Count; j++)
+                    {
+                        geomTree.Branches[i][j].CastTo(out box);
+                        Point3d[] c = box.GetCorners();
+                        double xmin = double.MaxValue, xmax = double.MinValue, ymin = double.MaxValue, ymax = double.MinValue, zmin = double.MaxValue, zmax = double.MinValue;
+                        for (int k = 0; k < c.Length; k++)
+                        {
+                            if (c[k].X > xmax)
+                                xmax = c[k].X;
+                            if (c[k].Y > ymax)
+                                ymax = c[k].Y;
+                            if (c[k].Z > zmax)
+                                zmax = c[k].Z;
+                            if (c[k].X < xmin)
+                                xmin = c[k].X;
+                            if (c[k].Y < ymin)
+                                ymin = c[k].Y;
+                            if (c[k].Z < zmin)
+                                zmin = c[k].Z;
+
+                        }
+
+
+
+
+
+                        geometryDoublesPerDirection.Add(new double[] { xmin-origin.X, xmax-origin.X, ymin-origin.Y, ymax-origin.Y, zmin-origin.Z, zmax-origin.Z });
+                        if (j < 10)
+                        {
+                            double[] geo = geometryDoublesPerDirection[geometryDoublesPerDirection.Count-1];
+                            Rhino.RhinoApp.WriteLine($"[{j}] {geo[0]}, {geo[1]}, {geo[2]}, {geo[3]}, {geo[4]}, {geo[5]}");
+                        }
+                    }
+                    Rhino.RhinoApp.WriteLine($"{i} - count is {geometryDoublesPerDirection.Count}");
+                    allGeometryDoubles.Add(geometryDoublesPerDirection);
+                }
+                //Rhino.RhinoApp.WriteLine($"allGeometryDoubles.Count = {allGeometryDoubles.Count}");
 
                 if (resetFFD)
                 {
-                    ffdSolver = new FFDSolver(
-                    this.OnPingDocument().FilePath,
-                    Nxyz,
-                    xyzsize,
-                    geom,
-                    t_end,
-                    dt,
-                    meanDt,
-                    Vmet,
-                    terrain,
-                    strparam
-                  );
+
+
+                    CreateAll(
+                            this.OnPingDocument().FilePath,
+                            Nxyz,
+                            xyzsize,
+                            t_end,
+                            dt,
+                            meanDt,
+                            Vmet,
+                            terrain,
+                            strparam
+                          );
+
                 }
 
                 if (run)
                 {
 
-                    ffdSolver.run = false;
-                    if (ffdSolver.dt == 0.0) //we know it's empty.
+                    if (ffdSolvers.Count == 0)
                     {
-                        ffdSolver = new FFDSolver(
-                       this.OnPingDocument().FilePath,
-                       Nxyz,
-                       xyzsize,
-                       geom,
-                       t_end,
-                       dt,
-                       meanDt,
-                       Vmet,
-                       terrain,
-                       strparam
-                       );
+
+                        Rhino.RhinoApp.WriteLine("..createall");
+                        CreateAll(
+                            this.OnPingDocument().FilePath,
+                            Nxyz,
+                            xyzsize,
+                            t_end,
+                            dt,
+                            meanDt,
+                            Vmet,
+                            terrain,
+                            strparam
+                        );
+
                     }
 
+                    //ffdSolver.run = false;
+                    //if (ffdSolver[0].dt == 0.0) //we know it's empty.
+                    //{
+                    //    ffdSolver = new FFDSolver(
+                    //   this.OnPingDocument().FilePath,
+                    //   Nxyz,
+                    //   xyzsize,
+                    //   geom,
+                    //   t_end,
+                    //   dt,
+                    //   meanDt,
+                    //   Vmet,
+                    //   terrain,
+                    //   strparam
+                    //   );
+ 
 
-                    computingTask = new Task<bool>(() => ffdSolver.Run());
+                   //RunAll();
+                    //}
+
+
+
+                    //computingTask = new Task<bool>(() => ffdSolver.Run());
+                    computingTask = new Task<bool>(() => RunAll());
                 }
 
 
@@ -347,7 +518,7 @@ namespace GHWind
                         if (result == true)
                         {
                             //Rhino.RhinoApp.WriteLine("outputting");
-                            NickName = "Task Finished!";
+                            NickName = "Asynch - Task Finished!";
                             skipSolution = true;
 
                             //pstagResults = ffdSolver.pstag;
@@ -369,7 +540,7 @@ namespace GHWind
                         else
                         {
                             Rhino.RhinoApp.WriteLine("failed");
-                            NickName = "Task Failed.";
+                            NickName = "Asynch - Task Failed.";
                             Grasshopper.Instances.RedrawAll();
                         }
                         componentBusy = false;
@@ -377,7 +548,7 @@ namespace GHWind
                     }
                     else if (r.Status == TaskStatus.Faulted)
                     {
-                        NickName = "Task Faulted.";
+                        NickName = "Asynch - Task Faulted.";
                         Grasshopper.Instances.RedrawAll();
                         componentBusy = false;
 
@@ -390,12 +561,13 @@ namespace GHWind
 
                 );
 
-
                 computingTask.Start();
                 if (run)
-                NickName = "Processing...";
+                    NickName = "Processing...";
                 Grasshopper.Instances.RedrawAll();
                 componentBusy = true;
+
+
 
                 //if (stop)
                 //{
@@ -429,7 +601,7 @@ namespace GHWind
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("0c7a26c4-779f-4e19-a1ae-7e5ccccf9b1e"); }
+            get { return new Guid("8c39b979-2aa8-44ed-a134-85d0e909fcde"); }
         }
     }
 }

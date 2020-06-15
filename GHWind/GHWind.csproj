@@ -64,6 +64,7 @@
     <Compile Include="GHFFDliddrivencavity.cs" />
     <Compile Include="GHFFDSolver.cs" />
     <Compile Include="GHFFDSolverAsync.cs" />
+    <Compile Include="GHFFDSolverAsyncMulti.cs" />
     <Compile Include="GHFFDSolverAytac.cs" />
     <Compile Include="GHFFDSolverV2.cs" />
     <Compile Include="GHFFDSolverWentao.cs" />

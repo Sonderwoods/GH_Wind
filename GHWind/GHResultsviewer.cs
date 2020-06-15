@@ -23,7 +23,7 @@ namespace GHWind
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("input", "input", "input", GH_ParamAccess.list);
+            pManager.AddGenericParameter("ffdSolver", "ffdSolver", "input ffdSolver from the Asynch component", GH_ParamAccess.list);
         }
 
         /// <summary>
