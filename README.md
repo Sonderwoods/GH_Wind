@@ -9,6 +9,8 @@ https://github.com/Sonderwoods/GH_Wind/tree/master/Tutorials/Asynchronous_test.g
 https://github.com/Sonderwoods/GH_Wind/GHWind/GHFFDSolver.cs
 https://github.com/Sonderwoods/GH_Wind/GHWind/GHFFDSolverAsync.cs
 
+Download plugin here:
+https://github.com/Sonderwoods/GH_Wind/GHWind/bin/GHWind.gha
 
 
 All credit goes to GH_Wind by Christoph Waibel
