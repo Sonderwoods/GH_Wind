@@ -28,7 +28,7 @@ namespace GHWind
         public GHFFDSolverAsyncMulti()
           : base("GHFFDSolverAsyncMulti", "GHFFDSolverAsyncMulti",
               "Description",
-              "Category", "Subcategory")
+              "EnergyHubs", "Wind Simulation")
         {
         }
 
@@ -258,7 +258,7 @@ namespace GHWind
             int Nz = Nxyz[2];
 
 
-            GH_Structure<IGH_Goo> geomTree = new GH_Structure<IGH_Goo>();
+            
 
 
 
@@ -268,7 +268,7 @@ namespace GHWind
             List<double[]> geom = new List<double[]>();
             if (!DA.GetDataList(2, geom)) { return; };
             //if (!DA.GetDataTree(16, out geomTree)) { return; }
-            DA.GetDataTree(16, out geomTree);
+            
             
 
             // time step
@@ -331,6 +331,10 @@ namespace GHWind
 
             bool update = false;
             DA.GetData(15, ref update);
+
+
+            GH_Structure<IGH_Goo> geomTree = new GH_Structure<IGH_Goo>();
+            DA.GetDataTree(16, out geomTree);
 
             DA.GetData(17, ref origin);
 
