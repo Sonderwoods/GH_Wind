@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-
+using System.Linq;
+using Grasshopper;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
@@ -44,7 +45,7 @@ namespace GHWind
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-
+            //Rhino.RhinoApp.WriteLine($"runnin stats");
             double thresholdVelocity = 5.0;
             double[] thresholdTimes = new double[4] {
                 87.6 * 2.5,
@@ -54,52 +55,135 @@ namespace GHWind
 
             //List<double[]> speedups = new List<double[]>();
             List<double> windVelocities = new List<double>();
+            DA.GetDataList(0, windVelocities);
             
             List<double> windDirections = new List<double>();
+            DA.GetDataList(1, windDirections);
 
-            GH_Structure<IGH_Goo> speedups = new GH_Structure<IGH_Goo>();
+            GH_Structure<GH_Number> speedups = new GH_Structure<GH_Number>();
+            DA.GetDataTree(2, out speedups);
+            
+            
+            int noWindDirections = speedups.Branches.Count;
+            //int x = speedups.Branches.Count;
 
-            DA.GetDataTree(1, out speedups);
+            //Rhino.RhinoApp.WriteLine($"noWindDirs: {noWindDirections}");
 
-            int noWindDirections = speedups.PathCount;
+            List <List<double>> windVelocitiesPerDirection = new List<List<double>>(noWindDirections);
+            List<List<double>> velocitiesPerPoint = new List<List<double>>(noWindDirections);
 
-            List<List<double>> windVelocitiesPerDirection = new List<List<double>>(noWindDirections);
-            List<List<double>> velocitiesPerPointPerDir = new List<List<double>>(noWindDirections);
-
-
-            double angleTol = 360.0 / noWindDirections / 2.0; // at 16 dirs, each angle is 22.5   this means +/-11.25° to each side.
+            
 
             for (int i = 0; i < noWindDirections; i++)
             {
+                windVelocitiesPerDirection.Add(new List<double>());
+                velocitiesPerPoint.Add(new List<double>());
+            }
+
+
+            double angleTol = 360.0 / noWindDirections / 2.0; // at 16 dirs, each angle is 22.5   this means +/-11.25° to each side.
+            //Rhino.RhinoApp.WriteLine($"angleTol: {angleTol}");
+
+
+            // PARSING ONLY ON WEATHER DATA. NO gEOMETRT/RESULTS HERE
+
+            
+
+            for (int h = 0; h < 8760; h++) // for each hour
+            {
+                //double thisVelocity = windVelocities[h];
+                //double thisDirection = windDirections[j];
+
+                //bool foundDir = false;
+
+                for (int i = 0; i < noWindDirections; i++) // for each direction
+                {
+                    double thisAngle = 360.0 / noWindDirections * i;
+                    double thisMax = thisAngle  + angleTol;
+                    double thisMin = thisAngle - angleTol;
+
+                    bool extra = false;
+                    if (thisAngle == 0 && (Math.Abs(windDirections[h] - 360.0) < angleTol))
+                        extra = true;
+
+                    if ((Math.Abs(thisAngle - windDirections[h]) < angleTol || (Math.Abs(windDirections[h] - thisAngle) <= angleTol)) || extra)
+                    {
+                        windVelocitiesPerDirection[i].Add(windVelocities[h]);
+                        //Rhino.RhinoApp.WriteLine($"{h} - adding {windVelocities[h]}m/s ({windDirections[h]}) to direction {thisAngle}°");
+                        //foundDir = true;
+                        break;
+                    }
+                    
+                }
+                //if (!foundDir)
+                //    Rhino.RhinoApp.WriteLine($"{h} - no dir found");
+
+                //foreach (double vel in windVelocitiesPerDirection[i])
+                //    Rhino.RhinoApp.WriteLine($"{vel:0.0}");
+            }
+            for (int i = 0; i < windVelocitiesPerDirection.Count; i++)
+            {
+                Rhino.RhinoApp.WriteLine($"length of {i} is {windVelocitiesPerDirection[i].Count} - avg is {windVelocitiesPerDirection[i].Average():0.0}");
+            }
+
+
+
+            // PARSIN ON GEOMETRY
+            //Rhino.RhinoApp.WriteLine($"well");
+
+            int noPoints = speedups.get_Branch(0).Count;
+
+
+            for (int i = 0; i < noWindDirections; i++) // for each direction
+            {
                 double thisAngle = 360.0 / noWindDirections * i;
 
-                for (int j = 0; j < 8760; j++)
+                Rhino.RhinoApp.WriteLine($"reading exceedence for direction {thisAngle} (no of hours {windVelocitiesPerDirection[i].Count})");
+                for (int j = 0; j < noPoints; j++) // for each point
                 {
-                    bool extra = false;
-                    if (thisAngle == 0 && (Math.Abs(windDirections[j] - 360.0) < angleTol))
-                        extra = true;
-                    if ((Math.Abs(thisAngle-windDirections[j]) < angleTol || (Math.Abs(windDirections[j] - thisAngle) <= angleTol)) || extra)
+                    velocitiesPerPoint.Add(new List<double>());
+
+                    for (int k = 0; k < windVelocitiesPerDirection[i].Count; k++)
                     {
-                        windVelocitiesPerDirection[i].Add(windVelocities[j]);
+
+                        double speedup = (speedups[i][j] as GH_Number).Value;
+                        double v = speedup * windVelocitiesPerDirection[i][k];
+                        velocitiesPerPoint[j].Add(v);
+                        
                     }
 
                 }
 
             }
-
-
-
-            for (int i = 0; i < speedups.PathCount; i++)
+            for (int i = 0; i < velocitiesPerPoint.Count; i++)
             {
-                double direction = i / (double)noWindDirections;
-                for (int j = 0; j < speedups[0].Count; j++)
-                {
-                    double speedup = 0;
-                    speedups[i][j].CastTo(out speedup);
-                    velocitiesPerPointPerDir[i].Add(speedup * );
-                }// TODO
+                Rhino.RhinoApp.WriteLine($"velocitiesPerPoint {i} . count =  {velocitiesPerPoint[i].Count}");
+
             }
 
+
+
+            double[] statisticsPerPoint = new double[noPoints];
+            DataTree<GH_Number> results = new DataTree<GH_Number>();
+
+            
+                //double[] numbers = null;
+                //Rhino.RhinoApp.WriteLine($"parsin dir {i} (count: {velocitiesPerPointPerDir[i].Count})");
+
+            for (int i = 0; i < noPoints; i++)
+            {
+                int hours = 0;
+                for (int j = 0; j < velocitiesPerPoint[i].Count; i++)
+                {
+                    if (velocitiesPerPoint[i][j] > 5)
+                        hours++;
+                }
+                statisticsPerPoint[i] = hours;
+
+            }
+
+
+            DA.SetDataList(0, statisticsPerPoint);
 
         }
 

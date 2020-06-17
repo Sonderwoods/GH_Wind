@@ -174,7 +174,7 @@ namespace GHWind
             for (int i = 0; i < geom.Count; i++)
             {
                 double[] geo = geom[i];
-                Rhino.RhinoApp.WriteLine($"[{i}] {geo[0]}, {geo[1]}, {geo[2]}, {geo[3]}, {geo[4]}, {geo[5]}");
+                //Rhino.RhinoApp.WriteLine($"[{i}] {geo[0]}, {geo[1]}, {geo[2]}, {geo[3]}, {geo[4]}, {geo[5]}");
                 if (i == 10)
                     break;
             }

@@ -204,7 +204,7 @@ namespace GHWind
             // Create FFD solver and domain
             //if (ffd == null || resetFFD)
             //{
-            Rhino.RhinoApp.WriteLine($"{id} - "+ "{0}, {1}, {2}", xyzsize[0], xyzsize[1], xyzsize[2]);
+            //Rhino.RhinoApp.WriteLine($"{id} - "+ "{0}, {1}, {2}", xyzsize[0], xyzsize[1], xyzsize[2]);
             if (terrain == 4)
             {
                 omega = new WindInflowOpenFoam(Nx + 2, Ny + 2, Nz + 2, xyzsize[0], xyzsize[1], xyzsize[2], Vmet, z0);
@@ -216,11 +216,11 @@ namespace GHWind
 
             //Rhino.RhinoApp.WriteLine("M0005");
 
-            foreach (double[] geo in geom)
-            {
+            //foreach (double[] geo in geom)
+            //{
                 
-                omega.add_obstacle(geo[0], geo[1], geo[2], geo[3], geo[4], geo[5]);
-            }
+            //    omega.add_obstacle(geo[0], geo[1], geo[2], geo[3], geo[4], geo[5]);
+            //}
 
             //Rhino.RhinoApp.WriteLine("M0005a");
 
@@ -257,7 +257,7 @@ namespace GHWind
 
                 if (calcres) File.AppendAllText(residualstxt, "pmin; pmax; pavg; umin; umax; uavg; vmin; vmax; vavg; wmin; wmax; wavg;\n");
 
-
+                Rhino.RhinoApp.WriteLine($"[{id}]:\n");
                 while (t < t_end)
                 {
 
@@ -285,7 +285,7 @@ namespace GHWind
 
                 }
 
-                
+                Rhino.RhinoApp.WriteLine($"\n");
 
             }
 
@@ -465,7 +465,7 @@ namespace GHWind
         {
 
 
-            Rhino.RhinoApp.WriteLine($"{id} - " + Convert.ToString(t) + " of " + Convert.ToString(t_end));
+            Rhino.RhinoApp.WriteLine($"{t/t_end*100.0:0.0}%");
 
             double[,,] p_t2 = new double[ffd.p.GetLength(0), ffd.p.GetLength(1), ffd.p.GetLength(2)];
             Array.Copy(ffd.p, 0, p_t2, 0, ffd.p.Length);
@@ -482,19 +482,19 @@ namespace GHWind
                 double[] p_residuals;
                 double[,,] p_t1 = ffd.p;
                 FastFluidSolverMT.Utilities.calculate_residuals(p_t1, p_t2, out p_residuals);
-                Rhino.RhinoApp.WriteLine($"{id} - " + "p residuals: {0};{1};{2}", p_residuals[0], p_residuals[1], p_residuals[2]);
+                Rhino.RhinoApp.WriteLine($"[{id}] " + "p residuals: {0:0.000};{1:0.000};{2:0.000}", p_residuals[0], p_residuals[1], p_residuals[2]);
                 double[] u_residuals;
                 double[,,] u_t1 = ffd.u;
                 FastFluidSolverMT.Utilities.calculate_residuals(u_t1, u_t2, out u_residuals);
-                Rhino.RhinoApp.WriteLine($"{id} - " + "u residuals: {0};{1};{2}", u_residuals[0], u_residuals[1], u_residuals[2]);
+                Rhino.RhinoApp.WriteLine($"[{id}] " + "u residuals: {0:0.000};{1:0.000};{2:0.000}", u_residuals[0], u_residuals[1], u_residuals[2]);
                 double[] v_residuals;
                 double[,,] v_t1 = ffd.v;
                 FastFluidSolverMT.Utilities.calculate_residuals(v_t1, v_t2, out v_residuals);
-                Rhino.RhinoApp.WriteLine($"{id} - " + "v residuals: {0};{1};{2}", v_residuals[0], v_residuals[1], v_residuals[2]);
+                Rhino.RhinoApp.WriteLine($"[{id}] " + "v residuals: {0:0.000};{1:0.000};{2:0.000}", v_residuals[0], v_residuals[1], v_residuals[2]);
                 double[] w_residuals;
                 double[,,] w_t1 = ffd.w;
                 FastFluidSolverMT.Utilities.calculate_residuals(w_t1, w_t2, out w_residuals);
-                Rhino.RhinoApp.WriteLine($"{id} - " + "w residuals: {0};{1};{2}", w_residuals[0], w_residuals[1], w_residuals[2]);
+                Rhino.RhinoApp.WriteLine($"[{id}] " + "w residuals: {0:0.000};{1:0.000};{2:0.000}", w_residuals[0], w_residuals[1], w_residuals[2]);
 
                 File.AppendAllText(residualstxt, Convert.ToString(p_residuals[0]) + ";" + Convert.ToString(p_residuals[1]) + ";" + Convert.ToString(p_residuals[2]) + ";" +
                     Convert.ToString(u_residuals[0]) + ";" + Convert.ToString(u_residuals[1]) + ";" + Convert.ToString(u_residuals[2]) + ";" +

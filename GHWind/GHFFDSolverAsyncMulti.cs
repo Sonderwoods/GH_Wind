@@ -41,6 +41,7 @@ namespace GHWind
         int[,,] obstacle_cells;
         List<List<double[]>> allGeometryDoubles = new List<List<double[]>>();
         Point3d origin = new Point3d();
+        bool stopAll = false;
 
 
         /// <summary>
@@ -160,13 +161,14 @@ namespace GHWind
 
             bool RunAll()
         {
-            Rhino.RhinoApp.WriteLine($"== STARTALL == (ffdSolver count = {ffdSolvers.Count})");
-
+            //Rhino.RhinoApp.WriteLine($"== STARTALL == (ffdSolver count = {ffdSolvers.Count})");
+            stopAll = false;
             for (int i = 0; i < ffdSolvers.Count; i++)
             {
-                Rhino.RhinoApp.WriteLine($"== STARTING ==  starting {i}");
+                if (stopAll)
+                    break;
+                Rhino.RhinoApp.WriteLine($"[{i}] STARTING");
                 ffdSolvers[i].Run();
-                Rhino.RhinoApp.WriteLine($"== FINISHING == {i}");
             }
             return true;
 
@@ -214,7 +216,7 @@ namespace GHWind
                 ffdSolvers[i].run = false;
                 ffdSolvers[i].StopRun();
             }
-            
+            stopAll = true;
             return true;
 
         }
@@ -435,11 +437,11 @@ namespace GHWind
 
 
                         geometryDoublesPerDirection.Add(new double[] { xmin-origin.X, xmax-origin.X, ymin-origin.Y, ymax-origin.Y, zmin-origin.Z, zmax-origin.Z });
-                        if (j < 10)
-                        {
-                            double[] geo = geometryDoublesPerDirection[geometryDoublesPerDirection.Count-1];
-                            Rhino.RhinoApp.WriteLine($"[{j}] {geo[0]}, {geo[1]}, {geo[2]}, {geo[3]}, {geo[4]}, {geo[5]}");
-                        }
+                        //if (j < 10)
+                        //{
+                        //    double[] geo = geometryDoublesPerDirection[geometryDoublesPerDirection.Count-1];
+                        //    Rhino.RhinoApp.WriteLine($"[{j}] {geo[0]}, {geo[1]}, {geo[2]}, {geo[3]}, {geo[4]}, {geo[5]}");
+                        //}
                     }
                     Rhino.RhinoApp.WriteLine($"{i} - count is {geometryDoublesPerDirection.Count}");
                     allGeometryDoubles.Add(geometryDoublesPerDirection);
