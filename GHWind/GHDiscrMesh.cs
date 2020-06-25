@@ -39,6 +39,7 @@ namespace GHWind
         {
             pManager.AddBoxParameter("boxes", "boxes", "boxes", GH_ParamAccess.list);
             pManager.AddGenericParameter("cubes as doubles", "cubes", "cubes", GH_ParamAccess.list);
+            pManager.AddGenericParameter("GeoClass", "GeoClass", "GeoClass", GH_ParamAccess.item);
             //pManager.AddTextParameter("export path", "export path", "path of the csv file", GH_ParamAccess.item);
         }
 
@@ -161,7 +162,7 @@ namespace GHWind
 
 
 
-
+            DiscretizedGeometry myGeometry = new DiscretizedGeometry(cubes);
 
 
 
@@ -169,6 +170,7 @@ namespace GHWind
 
             DA.SetDataList(0, box);
             DA.SetDataList(1, cubes);
+            DA.SetData(2, myGeometry);
         }
 
 

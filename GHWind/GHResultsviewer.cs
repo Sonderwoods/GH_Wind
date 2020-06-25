@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using FastFluidSolverMT;
 using Grasshopper.Kernel;
+using Grasshopper.Kernel.Data;
+using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
 
 namespace GHWind
@@ -43,7 +45,12 @@ namespace GHWind
             pManager.AddGenericParameter("DE", "DE", "Data Extractor, containing omega and FFD classes", GH_ParamAccess.item);
             //#5
             pManager.AddGenericParameter("obst domain", "obst domain", "Boolean array indicating obstacle cell (1) or fluid cell (0) of the entire domain.", GH_ParamAccess.item);
+
+            //#6
             pManager.AddGenericParameter("ffdSolver", "ffdSolver", "ffdSolver", GH_ParamAccess.item);
+
+            //#7
+            pManager.AddNumberParameter("values", "values", "values", GH_ParamAccess.tree);
         }
 
         /// <summary>
@@ -200,6 +207,28 @@ namespace GHWind
             DA.SetData(4, de);
 
             DA.SetData(5, omega.obstacle_cells);
+
+
+            GH_Structure<GH_Number> outNumbers = new GH_Structure<GH_Number>();
+
+
+
+
+            
+
+            for (int j = 0; j < veloutStag[0].GetLength(0); j++)
+            {
+                for (int k = 0; k < veloutStag[0].GetLength(1); k++)
+                {
+                    double velocity = Math.Sqrt(veloutStag[0][j, k, 1] * veloutStag[0][j, k, 1] + veloutStag[1][j, k, 1] * veloutStag[1][j, k, 1] + veloutStag[2][j, k, 1] * veloutStag[2][j, k, 1]);
+
+                    outNumbers.Append(new GH_Number(velocity), new GH_Path(j, k));
+                }
+
+            }
+
+            DA.SetDataTree(7, outNumbers);
+
             
         }
 

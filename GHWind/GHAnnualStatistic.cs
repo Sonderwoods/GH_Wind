@@ -49,6 +49,7 @@ namespace GHWind
             pManager.AddNumberParameter("Comfort", "C", "annual comfort per point. Number represent the hours of the year where 5m/s is exceeded", GH_ParamAccess.list);
             pManager.AddNumberParameter("raw per direction", "SPD", "x", GH_ParamAccess.tree);
             pManager.AddNumberParameter("hours above threshold, per direction", "x", "x", GH_ParamAccess.tree);
+            pManager.AddNumberParameter("vels per point", "VPP", "x", GH_ParamAccess.tree);
         }
 
         /// <summary>
@@ -57,20 +58,23 @@ namespace GHWind
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            double thresholdVelocity = 5.0;
-            DA.GetData(3, ref thresholdVelocity);
+            
 
 
             List<double> windVelocities = new List<double>();
             DA.GetDataList(0, windVelocities);
-            
+
             List<double> windDirections = new List<double>();
             DA.GetDataList(1, windDirections);
 
             GH_Structure<GH_Number> speedups = new GH_Structure<GH_Number>();
             DA.GetDataTree(2, out speedups);
 
+            double thresholdVelocity = 5.0;
+            DA.GetData(3, ref thresholdVelocity);
 
+            int noHours = windVelocities.Count;
+            int noPoints = speedups.get_Branch(0).Count;
             int noWindDirections = speedups.Branches.Count;
             //int x = speedups.Branches.Count;
 
@@ -94,7 +98,7 @@ namespace GHWind
 
             
 
-            for (int h = 0; h < 8760; h++) // for each hour
+            for (int h = 0; h < noHours; h++) // for each hour
             {
 
                 for (int i = 0; i < noWindDirections; i++) // for each direction
@@ -110,7 +114,7 @@ namespace GHWind
                     if ((Math.Abs(thisAngle - windDirections[h]) < angleTol || (Math.Abs(windDirections[h] - thisAngle) <= angleTol)) || extra)
                     {
                         windVelocitiesPerDirection[i].Add(windVelocities[h]);
-                        Rhino.RhinoApp.WriteLine($"{h} - adding {windVelocities[h]}m/s ({windDirections[h]}) to direction {thisAngle}°");
+                        //Rhino.RhinoApp.WriteLine($"{h} - adding {windVelocities[h]}m/s ({windDirections[h]}) to direction {thisAngle}°");
                         //foundDir = true;
                         break;
                     }
@@ -146,21 +150,29 @@ namespace GHWind
             // =================================
 
 
-            int noPoints = speedups.get_Branch(0).Count;
+            GH_Structure<GH_Number> outVelocitiesPerPoint = new GH_Structure<GH_Number>();
+
+            //int noPoints = speedups.get_Branch(0).Count;
 
             for (int i = 0; i < noWindDirections; i++) // for each direction
             {
-                double thisAngle = 360.0 / noWindDirections * i;
+                //double thisAngle = 360.0 / noWindDirections * i;
 
                 for (int j = 0; j < noPoints; j++) // for each point
                 {
                     velocitiesPerPoint.Add(new List<double>());
+                    GH_Path path = new GH_Path(j, i);
+
+                    //speedups.get_DataItem(new GH_Path(i), j);
+
+                    double speedup = speedups.get_DataItem(new GH_Path(i), j).Value;
+                    Rhino.RhinoApp.WriteLine($"speedups[{i}][{j}] = {speedups[i][j]}");
 
                     for (int k = 0; k < windVelocitiesPerDirection[i].Count; k++)
                     {
-
-                        double speedup = (speedups[i][j] as GH_Number).Value;
+                        
                         velocitiesPerPoint[j].Add(speedup * windVelocitiesPerDirection[i][k]);
+                        outVelocitiesPerPoint.Append(new GH_Number(speedup * windVelocitiesPerDirection[i][k]), path);
                         
                     }
 
@@ -168,13 +180,31 @@ namespace GHWind
 
             }
 
+            DA.SetDataTree(3, outVelocitiesPerPoint); // VPP  VelocitiesPerPoint
+
+
+
             double[] timeAboveThreshold = new double[noPoints];
 
-            DataTree<GH_Number> outResults = new DataTree<GH_Number>();
+            //DataTree<GH_Number> outResults = new DataTree<GH_Number>();
 
             for (int i = 0; i < noPoints; i++)
             {
-                timeAboveThreshold[i] = velocitiesPerPoint[i].Where(x => x <= thresholdVelocity).Count();
+                int hours = 0;
+
+                for (int j = 0; j < velocitiesPerPoint[i].Count; j++)
+                {
+                    
+                    if (velocitiesPerPoint[i][j] > thresholdVelocity)
+                    {
+                        hours++;
+                        if (i == 0)
+                            Rhino.RhinoApp.WriteLine($"velocitiesPerPoint[{i}][{j}] = {velocitiesPerPoint[i][j]}");
+
+                    }
+                }
+                timeAboveThreshold[i] = hours;
+                //timeAboveThreshold[i] = velocitiesPerPoint[i].Where(x => x <= thresholdVelocity).Count();
 
             }
     

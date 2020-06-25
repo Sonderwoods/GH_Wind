@@ -39,9 +39,11 @@ namespace GHWind
         double[,,] pstag;
         DataExtractor de;
         int[,,] obstacle_cells;
-        List<List<double[]>> allGeometryDoubles = new List<List<double[]>>();
+       
+        List<DiscretizedGeometry> geoms = new List<DiscretizedGeometry>();
         Point3d origin = new Point3d();
         bool stopAll = false;
+
 
 
         /// <summary>
@@ -55,8 +57,8 @@ namespace GHWind
             //later make another input for defining more precisely the domain. like, internal flow, external flow, inflows, outflows...)
 
             //#2
-            pManager.AddGenericParameter("OLD Geometry", "OLD Geometry", "Geometry as list of doubles [6] {xmin, xmax, ymin, ymax, zmin, zmax}, representing the obstacle cubes.", GH_ParamAccess.list);
-            pManager[2].Optional = true;
+            pManager.AddGenericParameter("Geometry", " Geometry", "Geometry as list of doubles [6] {xmin, xmax, ymin, ymax, zmin, zmax}, representing the obstacle cubes.", GH_ParamAccess.list);
+            //pManager[2].Optional = true;
 
             //#3
             pManager.AddNumberParameter("Time Step", "dt", "Calculation time step dt.", GH_ParamAccess.item);
@@ -105,9 +107,6 @@ namespace GHWind
             pManager.AddBooleanParameter("update", "update", "update", GH_ParamAccess.item, false);
             pManager[15].Optional = true;
 
-            //#16
-            pManager.AddGenericParameter("Boxes", "Boxes", "Boxes tree'd", GH_ParamAccess.tree);
-            pManager[16].Optional = true;
 
             //#17
             pManager.AddPointParameter("origin", "origin", "origin point ", GH_ParamAccess.item);
@@ -140,6 +139,9 @@ namespace GHWind
             pManager.AddGenericParameter("domain", "domain", "domain", GH_ParamAccess.item);
             //#8
             pManager.AddGenericParameter("fs", "fs", "fs", GH_ParamAccess.item);
+
+            //#9
+            pManager.AddBoxParameter("fs", "fs", "fs", GH_ParamAccess.list);
 
             // pManager.AddTextParameter("VTK path", "VTK path", "Output path of VTK results file", GH_ParamAccess.item);
         }
@@ -176,7 +178,8 @@ namespace GHWind
 
         bool CreateAll(string filepath, List<int> Nxyz, List<double> xyzsize, double t_end, double dt, int meanDt, double Vmet = 10, int terrain = 0, string strparam = "")
         {
-            Rhino.RhinoApp.WriteLine($"== CREATE ALL == (allGeometryDoubles.Count = {allGeometryDoubles.Count})");
+            Rhino.RhinoApp.WriteLine($"== CREATE ALL == (allGeometryDoubles.Count = {geoms.Count})");
+
             
 
             StopAll();
@@ -184,15 +187,15 @@ namespace GHWind
             ffdSolvers = new List<FFDSolver>();
             FFDSolver.ID = 0;
 
-            for (int i = 0; i < allGeometryDoubles.Count; i++)
+            for (int i = 0; i < geoms.Count; i++)
             {
 
-                Rhino.RhinoApp.WriteLine($"== creating == {i} (allGeometryDoubles.Count = {allGeometryDoubles.Count})");
+                Rhino.RhinoApp.WriteLine($"== creating == {i} (allGeometryDoubles.Count = {geoms.Count})");
                 ffdSolvers.Add(new FFDSolver(
                     this.OnPingDocument().FilePath,
                     Nxyz,
                     xyzsize,
-                    allGeometryDoubles[i],
+                    geoms[i].myListOfCubes,
                     t_end,
                     dt,
                     meanDt,
@@ -220,6 +223,7 @@ namespace GHWind
             return true;
 
         }
+
 
         /// <summary>
         /// This is the method that actually does the work.
@@ -250,6 +254,16 @@ namespace GHWind
             // *********************************************************************************
             // Inputs
             // *********************************************************************************
+
+
+            geoms = new List<DiscretizedGeometry>();
+            
+            if (!DA.GetDataList(2, geoms)) { return; };
+
+
+
+
+
             List<double> xyzsize = new List<double>();
             if (!DA.GetDataList(0, xyzsize)) { return; };
 
@@ -258,19 +272,6 @@ namespace GHWind
             int Nx = Nxyz[0];
             int Ny = Nxyz[1];
             int Nz = Nxyz[2];
-
-
-            
-
-
-
-            //List<List<double[]>> allGeometryDoubles = new List<List<double[]>>();
-
-
-            List<double[]> geom = new List<double[]>();
-            if (!DA.GetDataList(2, geom)) { return; };
-            //if (!DA.GetDataTree(16, out geomTree)) { return; }
-            
             
 
             // time step
@@ -335,10 +336,7 @@ namespace GHWind
             DA.GetData(15, ref update);
 
 
-            GH_Structure<IGH_Goo> geomTree = new GH_Structure<IGH_Goo>();
-            DA.GetDataTree(16, out geomTree);
-
-            DA.GetData(17, ref origin);
+            DA.GetData(16, ref origin);
 
 
             if (stop)
@@ -400,53 +398,6 @@ namespace GHWind
 
                 Task<bool> computingTask = new Task<bool>(() => ReturnSomething());
 
-
-
-
-                allGeometryDoubles = new List<List<double[]>>();
-
-                Rhino.RhinoApp.WriteLine($"geomTree.PathCount = {geomTree.PathCount}");
-                for (int i = 0; i < geomTree.PathCount; i++)
-                {
-                    List<double[]> geometryDoublesPerDirection = new List<double[]>();
-                    Box box = new Box();
-                    for (int j = 0; j < geomTree.Branches[i].Count; j++)
-                    {
-                        geomTree.Branches[i][j].CastTo(out box);
-                        Point3d[] c = box.GetCorners();
-                        double xmin = double.MaxValue, xmax = double.MinValue, ymin = double.MaxValue, ymax = double.MinValue, zmin = double.MaxValue, zmax = double.MinValue;
-                        for (int k = 0; k < c.Length; k++)
-                        {
-                            if (c[k].X > xmax)
-                                xmax = c[k].X;
-                            if (c[k].Y > ymax)
-                                ymax = c[k].Y;
-                            if (c[k].Z > zmax)
-                                zmax = c[k].Z;
-                            if (c[k].X < xmin)
-                                xmin = c[k].X;
-                            if (c[k].Y < ymin)
-                                ymin = c[k].Y;
-                            if (c[k].Z < zmin)
-                                zmin = c[k].Z;
-
-                        }
-
-
-
-
-
-                        geometryDoublesPerDirection.Add(new double[] { xmin-origin.X, xmax-origin.X, ymin-origin.Y, ymax-origin.Y, zmin-origin.Z, zmax-origin.Z });
-                        //if (j < 10)
-                        //{
-                        //    double[] geo = geometryDoublesPerDirection[geometryDoublesPerDirection.Count-1];
-                        //    Rhino.RhinoApp.WriteLine($"[{j}] {geo[0]}, {geo[1]}, {geo[2]}, {geo[3]}, {geo[4]}, {geo[5]}");
-                        //}
-                    }
-                    Rhino.RhinoApp.WriteLine($"{i} - count is {geometryDoublesPerDirection.Count}");
-                    allGeometryDoubles.Add(geometryDoublesPerDirection);
-                }
-                //Rhino.RhinoApp.WriteLine($"allGeometryDoubles.Count = {allGeometryDoubles.Count}");
 
                 if (resetFFD)
                 {
@@ -573,17 +524,6 @@ namespace GHWind
                 Grasshopper.Instances.RedrawAll();
                 componentBusy = true;
 
-
-
-                //if (stop)
-                //{
-                //    ffdSolver.StopRun();
-
-                //    Rhino.RhinoApp.WriteLine("stoprun()");
-
-                //    computingTask.Dispose();
-                //    Rhino.RhinoApp.WriteLine("dispose()");
-                //}
             }
         }
 
