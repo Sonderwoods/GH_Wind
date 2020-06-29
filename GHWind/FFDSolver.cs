@@ -68,7 +68,7 @@ namespace GHWind
         bool writeVTK = false;
         bool calcres = false;
         int m = 10;
-        string strparam = null;
+        //string strparam = null;
         string[] str_params = null;
 
 
@@ -89,13 +89,13 @@ namespace GHWind
         {
         }
 
-        public FFDSolver(string filepath, List<int> Nxyz, List<double> xyzsize, List<double[]> geom,  double t_end, double dt, int meanDt, double Vmet = 10, int terrain = 0, string strparam = "")
+        public FFDSolver(string filepath, List<int> Nxyz, List<double> xyzsize, List<double[]> geom,  double t_end, double dt, int meanDt, double Vmet = 10, int terrain = 0, string strparam = "", bool calcres = true)
         {
             id = ID;
             ID += 1;
             
             m = meanDt;
-            Rhino.RhinoApp.WriteLine($"{id} - established with long overload");
+            Rhino.RhinoApp.WriteLine($"{id} - established with long overload.  geom.count = {geom.Count}");
             this.filepath = filepath;
             residualstxt = filepath + @"\\residual.txt";
             if (Nxyz.Count == 0)
@@ -117,12 +117,13 @@ namespace GHWind
             Nz = Nxyz[2];
  
             this.dt = dt;
+            this.calcres = calcres;
             this.geom = geom;
             this.t_end = t_end;
             this.Vmet = Vmet;
             this.terrain = terrain;
             this.xyzsize = xyzsize;
-            if (strparam != null) str_params = strparam.Split(';');
+            if (strparam != null) this.str_params = strparam.Split(';');
         }
 
         public void StopRun()
@@ -216,11 +217,11 @@ namespace GHWind
 
             //Rhino.RhinoApp.WriteLine("M0005");
 
-            //foreach (double[] geo in geom)
-            //{
-                
-            //    omega.add_obstacle(geo[0], geo[1], geo[2], geo[3], geo[4], geo[5]);
-            //}
+            foreach (double[] geo in geom)
+            {
+
+                omega.add_obstacle(geo[0], geo[1], geo[2], geo[3], geo[4], geo[5]);
+            }
 
             //Rhino.RhinoApp.WriteLine("M0005a");
 
@@ -255,9 +256,11 @@ namespace GHWind
                 timestep = 0;
                 ffd_old = new FluidSolver[m];
 
-                if (calcres) File.AppendAllText(residualstxt, "pmin; pmax; pavg; umin; umax; uavg; vmin; vmax; vavg; wmin; wmax; wavg;\n");
 
-                Rhino.RhinoApp.WriteLine($"[{id}]:\n");
+
+                //if (calcres) File.AppendAllText(residualstxt, "pmin; pmax; pavg; umin; umax; uavg; vmin; vmax; vavg; wmin; wmax; wavg;\n");
+
+                Rhino.RhinoApp.WriteLine($"[{id}]: {residualstxt}");
                 while (t < t_end)
                 {
 
@@ -285,11 +288,13 @@ namespace GHWind
 
                 }
 
-                Rhino.RhinoApp.WriteLine($"\n");
+                Rhino.RhinoApp.WriteLine($"[{id}] Finished steps");
 
             }
 
             UpdateOutput();
+
+            Rhino.RhinoApp.WriteLine($"[{id}] Updated output");
 
 
             return true; //returns to the task manager and updates GH component
@@ -448,12 +453,12 @@ namespace GHWind
                 }
             }
 
-            List<double[,,]> veloutCen = new List<double[,,]> { };
+            veloutCen = new List<double[,,]> { };
             veloutCen.Add(vu);
             veloutCen.Add(vv);
             veloutCen.Add(vw);
 
-            List<double[,,]> veloutStag = new List<double[,,]> { };
+            veloutStag = new List<double[,,]> { };
             veloutStag.Add(vustag);
             veloutStag.Add(vvstag);
             veloutStag.Add(vwstag);
@@ -465,7 +470,7 @@ namespace GHWind
         {
 
 
-            Rhino.RhinoApp.WriteLine($"{t/t_end*100.0:0.0}%");
+            Rhino.RhinoApp.WriteLine($"[{id}] {t:0000}/{t_end:0000} ({t/t_end*100.0:0.0}%)     {t}.. {dt}..{calcres}");
 
             double[,,] p_t2 = new double[ffd.p.GetLength(0), ffd.p.GetLength(1), ffd.p.GetLength(2)];
             Array.Copy(ffd.p, 0, p_t2, 0, ffd.p.Length);
@@ -496,10 +501,10 @@ namespace GHWind
                 FastFluidSolverMT.Utilities.calculate_residuals(w_t1, w_t2, out w_residuals);
                 Rhino.RhinoApp.WriteLine($"[{id}] " + "w residuals: {0:0.000};{1:0.000};{2:0.000}", w_residuals[0], w_residuals[1], w_residuals[2]);
 
-                File.AppendAllText(residualstxt, Convert.ToString(p_residuals[0]) + ";" + Convert.ToString(p_residuals[1]) + ";" + Convert.ToString(p_residuals[2]) + ";" +
-                    Convert.ToString(u_residuals[0]) + ";" + Convert.ToString(u_residuals[1]) + ";" + Convert.ToString(u_residuals[2]) + ";" +
-                    Convert.ToString(v_residuals[0]) + ";" + Convert.ToString(v_residuals[1]) + ";" + Convert.ToString(v_residuals[2]) + ";" +
-                    Convert.ToString(w_residuals[0]) + ";" + Convert.ToString(w_residuals[1]) + ";" + Convert.ToString(w_residuals[2]) + "\n");
+                //File.AppendAllText(residualstxt, Convert.ToString(p_residuals[0]) + ";" + Convert.ToString(p_residuals[1]) + ";" + Convert.ToString(p_residuals[2]) + ";" +
+                //    Convert.ToString(u_residuals[0]) + ";" + Convert.ToString(u_residuals[1]) + ";" + Convert.ToString(u_residuals[2]) + ";" +
+                //    Convert.ToString(v_residuals[0]) + ";" + Convert.ToString(v_residuals[1]) + ";" + Convert.ToString(v_residuals[2]) + ";" +
+                //    Convert.ToString(w_residuals[0]) + ";" + Convert.ToString(w_residuals[1]) + ";" + Convert.ToString(w_residuals[2]) + "\n");
             }
 
             if (t >= t_end - m * dt)

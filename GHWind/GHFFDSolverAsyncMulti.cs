@@ -28,7 +28,7 @@ namespace GHWind
         public GHFFDSolverAsyncMulti()
           : base("GHFFDSolverAsyncMulti", "GHFFDSolverAsyncMulti",
               "Description",
-              "EnergyHubs", "Wind Simulation")
+              "GreenScenario", "Wind")
         {
         }
 

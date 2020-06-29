@@ -209,12 +209,12 @@ namespace GHWind
             DA.SetData(5, omega.obstacle_cells);
 
 
-            GH_Structure<GH_Number> outNumbers = new GH_Structure<GH_Number>();
 
 
 
 
             
+            GH_Structure<GH_Number> outNumbers = new GH_Structure<GH_Number>();
 
             for (int j = 0; j < veloutStag[0].GetLength(0); j++)
             {

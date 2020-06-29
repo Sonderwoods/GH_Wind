@@ -7,6 +7,8 @@ using Rhino.Geometry;
 using FastFluidSolverMT;
 using System.Threading.Tasks;
 using System.IO;
+using Grasshopper.Kernel.Data;
+using Grasshopper.Kernel.Types;
 
 /*
  * GHFFDSolver.cs
@@ -101,6 +103,9 @@ namespace GHWind
             //#5
             pManager.AddGenericParameter("obst domain", "obst domain", "Boolean array indicating obstacle cell (1) or fluid cell (0) of the entire domain.", GH_ParamAccess.item);
 
+            //#6
+            pManager.AddNumberParameter("values", "values", "values", GH_ParamAccess.tree);
+
             // pManager.AddTextParameter("VTK path", "VTK path", "Output path of VTK results file", GH_ParamAccess.item);
         }
 
@@ -140,6 +145,8 @@ namespace GHWind
 
             List<double[]> geom = new List<double[]>();
             if (!DA.GetDataList(2, geom)) { return; };
+
+            Rhino.RhinoApp.WriteLine($"established with long overload.  geom.count = {geom.Count}");
 
 
             // time step
@@ -558,6 +565,22 @@ namespace GHWind
                 DA.SetData(4, de);
 
                 DA.SetData(5, omega.obstacle_cells);
+
+
+                GH_Structure<GH_Number> outNumbers = new GH_Structure<GH_Number>();
+
+                for (int j = 0; j < veloutStag[0].GetLength(0); j++)
+                {
+                    for (int k = 0; k < veloutStag[0].GetLength(1); k++)
+                    {
+                        double velocity = Math.Sqrt(veloutStag[0][j, k, 1] * veloutStag[0][j, k, 1] + veloutStag[1][j, k, 1] * veloutStag[1][j, k, 1] + veloutStag[2][j, k, 1] * veloutStag[2][j, k, 1]);
+
+                        outNumbers.Append(new GH_Number(velocity), new GH_Path(j, k));
+                    }
+
+                }
+
+                DA.SetDataTree(6, outNumbers);
             }
         }
 
