@@ -414,7 +414,7 @@ namespace GHWind
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("{4525ceb8-47cc-4f9e-a0f1-e4dfedb84f53}"); }
+            get { return new Guid("4525ceb8-47cc-4f9e-a0f1-e4dfedb84f53"); }
         }
     }
 }

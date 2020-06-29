@@ -60,8 +60,7 @@
     <Compile Include="DiscretizedGeometry.cs" />
     <Compile Include="Domains.cs" />
     <Compile Include="FFDSolver.cs" />
-    <Compile Include="GHAnnualStatistic.cs" />
-    <Compile Include="GHAnnualStatsNew.cs" />
+    <Compile Include="GHAnnualStats.cs" />
     <Compile Include="GHDiscrMesh.cs" />
     <Compile Include="GHExportGeometry.cs" />
     <Compile Include="GHFFDliddrivencavity.cs" />
@@ -72,10 +71,12 @@
     <Compile Include="GHFFDSolverV2.cs" />
     <Compile Include="GHFFDSolverV3.cs" />
     <Compile Include="GHFFDSolverWentao.cs" />
+    <Compile Include="GHFindDirections.cs" />
     <Compile Include="GHPrintCellValues.cs" />
     <Compile Include="GHResultsviewer.cs" />
     <Compile Include="GHVisualizeCp.cs" />
     <Compile Include="GHVisualizerField.cs" />
+    <Compile Include="GHVisualizerFieldComfort.cs" />
     <Compile Include="GHVisualizerVectors.cs" />
     <Compile Include="GHWindInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

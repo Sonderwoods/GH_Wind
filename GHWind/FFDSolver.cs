@@ -32,7 +32,7 @@ namespace GHWind
         private FluidSolver[] ffd_old;
 
 
-
+        public int maxSolvers = 0;
 
         public string residualstxt;
         public DataExtractor de;
@@ -89,7 +89,7 @@ namespace GHWind
         {
         }
 
-        public FFDSolver(string filepath, List<int> Nxyz, List<double> xyzsize, List<double[]> geom,  double t_end, double dt, int meanDt, double Vmet = 10, int terrain = 0, string strparam = "", bool calcres = true)
+        public FFDSolver(string filepath, List<int> Nxyz, List<double> xyzsize, List<double[]> geom,  double t_end, double dt, int meanDt, double Vmet = 10, int terrain = 0, string strparam = "", bool calcres = true, int maxSolvers = 8)
         {
             id = ID;
             ID += 1;
@@ -123,6 +123,7 @@ namespace GHWind
             this.Vmet = Vmet;
             this.terrain = terrain;
             this.xyzsize = xyzsize;
+            this.maxSolvers = maxSolvers;
             if (strparam != null) this.str_params = strparam.Split(';');
         }
 
@@ -215,37 +216,30 @@ namespace GHWind
                 omega = new WindInflow(Nx + 2, Ny + 2, Nz + 2, xyzsize[0], xyzsize[1], xyzsize[2], Vmet, terrain);
             }
 
-            //Rhino.RhinoApp.WriteLine("M0005");
-
             foreach (double[] geo in geom)
             {
 
                 omega.add_obstacle(geo[0], geo[1], geo[2], geo[3], geo[4], geo[5]);
             }
 
-            //Rhino.RhinoApp.WriteLine("M0005a");
+
 
             ffd = new FluidSolver(omega, dt, nu, u0, v0, w0, solver_params);
             de = new DataExtractor(omega, ffd);
             t = 0;
 
-            //Rhino.RhinoApp.WriteLine("M0006");
-
             pp = new PostProcessor(ffd, omega);
 
-
-            //if (resetFFD) resetFFD = false;            //reset FFD solver and domain
             if (id == 0)
             {
-            Rhino.RhinoApp.WriteLine($"{id} - " + "GRASSHOPPER FFD Air Flow Simulation.");
-            Rhino.RhinoApp.WriteLine($"{id} - " + "GH Plug-in: https://github.com/christophwaibel/GH_Wind");
-            Rhino.RhinoApp.WriteLine($"{id} - " + "FFD Solver: https://github.com/lukasbystricky/GSoC_FFD");
-            Rhino.RhinoApp.WriteLine($"{id} - " + "________________________________________________________");
-            Rhino.RhinoApp.WriteLine($"{id} - " + "...Domain initialized");
-            Rhino.RhinoApp.WriteLine($"{id} - " + "________________________________________________________");
+            Rhino.RhinoApp.WriteLine($"[{id+1}/{maxSolvers}] - " + "GRASSHOPPER FFD Air Flow Simulation.");
+            Rhino.RhinoApp.WriteLine($"[{id+1}/{maxSolvers}] - " + "GH Plug-in: https://github.com/christophwaibel/GH_Wind");
+            Rhino.RhinoApp.WriteLine($"[{id+1}/{maxSolvers}] - " + "FFD Solver: https://github.com/lukasbystricky/GSoC_FFD");
+            Rhino.RhinoApp.WriteLine($"[{id+1}/{maxSolvers}] - " + "________________________________________________________");
+            Rhino.RhinoApp.WriteLine($"[{id+1}/{maxSolvers}] - " + "...Domain initialized");
+            Rhino.RhinoApp.WriteLine($"[{id+1}/{maxSolvers}] - " + "________________________________________________________");
             }
             
-            //}
 
 
             if (run)
@@ -257,45 +251,22 @@ namespace GHWind
                 ffd_old = new FluidSolver[m];
 
 
-
-                //if (calcres) File.AppendAllText(residualstxt, "pmin; pmax; pavg; umin; umax; uavg; vmin; vmax; vavg; wmin; wmax; wavg;\n");
-
-                Rhino.RhinoApp.WriteLine($"[{id}]: {residualstxt}");
                 while (t < t_end)
                 {
-
-                    //  only works if in the gh component and not in this class.
-                    //if (GH_Document.IsEscapeKeyDown())
-                    //{
-                    //    Rhino.RhinoApp.WriteLine("Cancelled by user");
-                    //    //GH_Document GHDocument = OnPingDocument();
-                    //    //GHDocument.RequestAbortSolution();
-                    //    break;
-                    //}
 
                     if (run != true)
                         break;
 
-
                     RunStep(ref timestep, ref counter);
 
 
-                    // doesnt work because the gh component doesnt update.
-                    //if (t % 10 == 0)
-                    //{
-                    //    UpdateOutput();
-                    //}
-
                 }
-
-                Rhino.RhinoApp.WriteLine($"[{id}] Finished steps");
 
             }
 
             UpdateOutput();
 
-            Rhino.RhinoApp.WriteLine($"[{id}] Updated output");
-
+            Rhino.RhinoApp.WriteLine($"[{id+1}/{maxSolvers}] Updated output");
 
             return true; //returns to the task manager and updates GH component
 
@@ -470,8 +441,6 @@ namespace GHWind
         {
 
 
-            Rhino.RhinoApp.WriteLine($"[{id}] {t:0000}/{t_end:0000} ({t/t_end*100.0:0.0}%)     {t}.. {dt}..{calcres}");
-
             double[,,] p_t2 = new double[ffd.p.GetLength(0), ffd.p.GetLength(1), ffd.p.GetLength(2)];
             Array.Copy(ffd.p, 0, p_t2, 0, ffd.p.Length);
             double[,,] u_t2 = new double[ffd.u.GetLength(0), ffd.u.GetLength(1), ffd.u.GetLength(2)];
@@ -487,24 +456,25 @@ namespace GHWind
                 double[] p_residuals;
                 double[,,] p_t1 = ffd.p;
                 FastFluidSolverMT.Utilities.calculate_residuals(p_t1, p_t2, out p_residuals);
-                Rhino.RhinoApp.WriteLine($"[{id}] " + "p residuals: {0:0.000};{1:0.000};{2:0.000}", p_residuals[0], p_residuals[1], p_residuals[2]);
                 double[] u_residuals;
                 double[,,] u_t1 = ffd.u;
                 FastFluidSolverMT.Utilities.calculate_residuals(u_t1, u_t2, out u_residuals);
-                Rhino.RhinoApp.WriteLine($"[{id}] " + "u residuals: {0:0.000};{1:0.000};{2:0.000}", u_residuals[0], u_residuals[1], u_residuals[2]);
                 double[] v_residuals;
                 double[,,] v_t1 = ffd.v;
                 FastFluidSolverMT.Utilities.calculate_residuals(v_t1, v_t2, out v_residuals);
-                Rhino.RhinoApp.WriteLine($"[{id}] " + "v residuals: {0:0.000};{1:0.000};{2:0.000}", v_residuals[0], v_residuals[1], v_residuals[2]);
                 double[] w_residuals;
                 double[,,] w_t1 = ffd.w;
                 FastFluidSolverMT.Utilities.calculate_residuals(w_t1, w_t2, out w_residuals);
-                Rhino.RhinoApp.WriteLine($"[{id}] " + "w residuals: {0:0.000};{1:0.000};{2:0.000}", w_residuals[0], w_residuals[1], w_residuals[2]);
+                Rhino.RhinoApp.WriteLine($"[{id+1}/{maxSolvers}] {t:000}/{t_end:000}      ({(id + (t / t_end)) / maxSolvers * 100.0:0.0}%) -      p res: {p_residuals[0]:0.00} ; {p_residuals[1]:0.00} ; {p_residuals[2]:0.00},    u: {u_residuals[0]:0.00} ; {u_residuals[1]:0.00} ; {u_residuals[2]:0.00},    v: {v_residuals[0]:0.00} ; {v_residuals[1]:0.00} ; {v_residuals[2]:0.00},    w: {w_residuals[0]:0.00} ; {w_residuals[1]:0.00} ; {w_residuals[2]:0.00}");
 
                 //File.AppendAllText(residualstxt, Convert.ToString(p_residuals[0]) + ";" + Convert.ToString(p_residuals[1]) + ";" + Convert.ToString(p_residuals[2]) + ";" +
                 //    Convert.ToString(u_residuals[0]) + ";" + Convert.ToString(u_residuals[1]) + ";" + Convert.ToString(u_residuals[2]) + ";" +
                 //    Convert.ToString(v_residuals[0]) + ";" + Convert.ToString(v_residuals[1]) + ";" + Convert.ToString(v_residuals[2]) + ";" +
                 //    Convert.ToString(w_residuals[0]) + ";" + Convert.ToString(w_residuals[1]) + ";" + Convert.ToString(w_residuals[2]) + "\n");
+            }
+            else
+            {
+                Rhino.RhinoApp.WriteLine($"[{id+1}/{maxSolvers}] {t:000}/{t_end:000}      ({(id+ (t / t_end) )/ maxSolvers * 100.0:0.0}%)");
             }
 
             if (t >= t_end - m * dt)

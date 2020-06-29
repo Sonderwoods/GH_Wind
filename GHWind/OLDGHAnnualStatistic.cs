@@ -9,12 +9,12 @@ using Rhino.Geometry;
 
 namespace GHWind
 {
-    public class GHAnnualStatistic : GH_Component
+    public class OLDGHAnnualStatistic : GH_Component
     {
         /// <summary>
         /// Initializes a new instance of the GHAnnualStatistic class.
         /// </summary>
-        public GHAnnualStatistic()
+        public OLDGHAnnualStatistic()
           : base("Annual Statistic", "AnnStat",
               "annual comfort per point. Number represent the hours of the year where 5m/s is exceeded",
               "GreenScenario", "Wind")

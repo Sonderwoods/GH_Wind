@@ -8,12 +8,12 @@ using Rhino.Geometry;
 
 namespace GHWind
 {
-    public class GHAnnualStatsNew : GH_Component
+    public class GHAnnualStats : GH_Component
     {
         /// <summary>
         /// Initializes a new instance of the GHAnnualStatsNew class.
         /// </summary>
-        public GHAnnualStatsNew()
+        public GHAnnualStats()
          : base("Annual Statistic2", "AnnStat2",
              "annual comfort per point. Number represent the hours of the year where 5m/s is exceeded",
              "GreenScenario", "Wind")
@@ -104,14 +104,6 @@ namespace GHWind
 
 
 
-            for (int h = 0; h < noHours; h++) // for each hour
-            {
-
-                
-
-            }
-
-
             // outputting stats per wind direction (not dependant on geo)
             GH_Structure<GH_Number> outSpeedsPerDirection = new GH_Structure<GH_Number>();
 
@@ -184,7 +176,7 @@ namespace GHWind
 
                     }
 
-                    if (p < 1 && h < 2000 && debug)
+                    if (p < 1 && h < 50 && debug)
                         Rhino.RhinoApp.WriteLine($"[p {p:0}][h {h:0}/{noHours}][wdir {thisWindDir:0}] {100.0*pointAccelerationThisDir:0.0}% · {windVelocities[h]}m/s = {pointVelocityThisHour:0.0}m/s  (exceeded so far: {hoursThisPoint})");
 
 
