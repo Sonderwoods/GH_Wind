@@ -44,6 +44,8 @@ namespace GHWind
         Point3d origin = new Point3d();
         bool stopAll = false;
 
+        int currentRun = 0;
+
 
 
         /// <summary>
@@ -84,8 +86,12 @@ namespace GHWind
             pManager.AddBooleanParameter("Run?", "Run?", "Run the solver. (Loop via Grasshopper timer component)", GH_ParamAccess.item);
 
             //#9
-            pManager.AddBooleanParameter("Stop?", "Stop?", "stop", GH_ParamAccess.item, false);
+            pManager.AddBooleanParameter("Stop all?", "Stop all?", "stop all", GH_ParamAccess.item, false);
             pManager[9].Optional = true;
+
+            //#10
+            pManager.AddBooleanParameter("Stop one?", "Stop one?", "stop one", GH_ParamAccess.item, false);
+            pManager[10].Optional = true;
 
 
 
@@ -133,6 +139,7 @@ namespace GHWind
             stopAll = false;
             for (int i = 0; i < ffdSolvers.Count; i++)
             {
+                currentRun = i;
                 if (stopAll)
                     break;
                 Rhino.RhinoApp.WriteLine($"\n[{i+1}/{ffdSolvers.Count}] starting");
@@ -152,8 +159,8 @@ namespace GHWind
 
             for (int i = 0; i < geoms.Count; i++)
             {
-
-                Rhino.RhinoApp.WriteLine($"[{1+i}/{geoms.Count}] creating domain");
+                
+                Rhino.RhinoApp.WriteLine($"[{1+i}/{geoms.Count}] creating domain and starting");
                 ffdSolvers.Add(new FFDSolver(
                     this.OnPingDocument().FilePath,
                     Nxyz,
@@ -182,6 +189,14 @@ namespace GHWind
                 ffdSolvers[i].StopRun();
             }
             stopAll = true;
+            return true;
+
+        }
+
+        bool StopOne()
+        {
+            ffdSolvers[currentRun].run = false;
+            ffdSolvers[currentRun].StopRun();
             return true;
 
         }
@@ -248,19 +263,16 @@ namespace GHWind
             bool stop = false;
             DA.GetData(9, ref stop);
 
+            bool stopOne = false;
+            DA.GetData(10, ref stopOne);
+
 
 
             if (stop)
-            {
-
-                //ffdSolver.StopRun();
                 StopAll();
-                //running[0] = false;
-                //Rhino.RhinoApp.WriteLine("stoprun()");
 
-                //computingTask.Dispose();
-                //Rhino.RhinoApp.WriteLine("dispose()");
-            }
+            if (stopOne)
+                StopOne();
 
 
 
@@ -271,7 +283,7 @@ namespace GHWind
 
                 DA.SetDataList(0, ffdSolvers);
 
-                Rhino.RhinoApp.WriteLine("trying to update outputs");
+                Rhino.RhinoApp.WriteLine("Updated all outputs to GH");
                 Grasshopper.Instances.RedrawAll();
             }
             else if (!componentBusy)

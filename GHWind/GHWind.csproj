@@ -61,6 +61,7 @@
     <Compile Include="Domains.cs" />
     <Compile Include="FFDSolver.cs" />
     <Compile Include="GHAnnualStats.cs" />
+    <Compile Include="GHAnnualStatsNew.cs" />
     <Compile Include="GHDiscrMesh.cs" />
     <Compile Include="GHExportGeometry.cs" />
     <Compile Include="GHFFDliddrivencavity.cs" />
@@ -71,7 +72,7 @@
     <Compile Include="GHFFDSolverV2.cs" />
     <Compile Include="GHFFDSolverV3.cs" />
     <Compile Include="GHFFDSolverWentao.cs" />
-    <Compile Include="GHFindDirections.cs" />
+    <Compile Include="GHDominantWinds.cs" />
     <Compile Include="GHPrintCellValues.cs" />
     <Compile Include="GHResultsviewer.cs" />
     <Compile Include="GHVisualizeCp.cs" />

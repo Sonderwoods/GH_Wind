@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
+
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
@@ -8,18 +8,17 @@ using Rhino.Geometry;
 
 namespace GHWind
 {
-    public class GHFindDirections : GH_Component
+    public class GHAnnualStatsNew : GH_Component
     {
         /// <summary>
         /// Initializes a new instance of the GHAnnualStatsNew class.
         /// </summary>
-        public GHFindDirections()
-         : base("Dominant Winds", "DomWinds",
-             "Find predominant wind directions",
-             "GreenScenario", "Thermal")
+        public GHAnnualStatsNew()
+         : base("Annual Statistic new", "AnnStat new",
+             "annual comfort per point. Number represent the hours of the year where 5m/s is exceeded",
+             "GreenScenario", "Wind")
         {
         }
-
         /// <summary>
         /// Registers all the input parameters for this component.
         /// </summary>
@@ -33,12 +32,15 @@ namespace GHWind
             pManager.AddNumberParameter("Annual Wind Directions", "Dir,wind", "annual wind directions, list length = 8760", GH_ParamAccess.list);
 
             //2
-            pManager.AddNumberParameter("No wind dirs", "No wind dirs", "int,  no of wind directions. Typically 8, 12 or 16.", GH_ParamAccess.item);
-
+            pManager.AddNumberParameter("SpeedupFactors", "Vrel", "speedup factors per point. Grafted, so that each tree is one direction", GH_ParamAccess.tree);
 
             //3
-            pManager.AddBooleanParameter("debug", "debug", "debug", GH_ParamAccess.item, false);
+            pManager.AddNumberParameter("Threshold", "Vmax", "threshold (m/s)  default is 5", GH_ParamAccess.item, 5.0);
             pManager[3].Optional = true;
+
+            //4
+            pManager.AddBooleanParameter("debug", "debug", "debug", GH_ParamAccess.item, false);
+            pManager[4].Optional = true;
         }
 
         /// <summary>
@@ -46,11 +48,15 @@ namespace GHWind
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            
+            pManager.AddNumberParameter("Comfort per Point", "Comfort per Point", "annual comfort per point. Number represent the hours of the year where 5m/s is exceeded", GH_ParamAccess.list);
             pManager.AddNumberParameter("Speed per Direction", "SPD", "x", GH_ParamAccess.tree);
-            pManager.AddNumberParameter("Directions", "Dirs", "x", GH_ParamAccess.list);
-
+            pManager.AddNumberParameter("hours above threshold, per direction", "hours above threshold, per direction", "x", GH_ParamAccess.tree);
+            pManager.AddNumberParameter("vels per point", "VPP", "x", GH_ParamAccess.tree);
         }
+
+
+        double speedAverages = 0;
+
 
         /// <summary>
         /// This is the method that actually does the work.
@@ -67,78 +73,45 @@ namespace GHWind
             List<double> windDirections = new List<double>();
             DA.GetDataList(1, windDirections);
 
-            //GH_Structure<GH_Number> speedups = new GH_Structure<GH_Number>();
-            //DA.GetDataTree(2, out speedups);
+            GH_Structure<GH_Number> speedups = new GH_Structure<GH_Number>();
+            DA.GetDataTree(2, out speedups);
 
-            
-            double windDirs = 0.0;
-            DA.GetData(2, ref windDirs);
-
-            int noWindDirections = (int)Math.Round(windDirs);
-
-            //double thresholdVelocity = 5.0;
-            //DA.GetData(3, ref thresholdVelocity);
+            double thresholdVelocity = 5.0;
+            DA.GetData(3, ref thresholdVelocity);
 
             bool debug = false;
-            DA.GetData(3, ref debug);
+            DA.GetData(4, ref debug);
 
             int noHours = windVelocities.Count;
+            int noPoints = speedups.get_Branch(0).Count;
+            int noWindDirections = speedups.Branches.Count;
+            //int x = speedups.Branches.Count;
 
             Rhino.RhinoApp.WriteLine($"noWindDirs: {noWindDirections}");
 
-            List<double> outDirections = new List<double>();
-
             List<List<double>> windVelocitiesPerDirection = new List<List<double>>(noWindDirections);
-
-            double angleTol = 360.0 / noWindDirections / 2.0; // at 16 dirs, each angle is 22.5   this means +/-11.25° to each side.
+            List<List<double>> velocitiesPerPoint = new List<List<double>>(noWindDirections);
 
             for (int i = 0; i < noWindDirections; i++)
             {
                 windVelocitiesPerDirection.Add(new List<double>());
-                outDirections.Add(angleTol * 2 * i);
-
+                velocitiesPerPoint.Add(new List<double>());
             }
 
-          
+            double angleTol = 360.0 / noWindDirections / 2.0; // at 16 dirs, each angle is 22.5   this means +/-11.25° to each side.
 
 
-            for (int h = 0; h < noHours; h++)
-            {
-
-                int thisWindDir = -1;
-
-                for (int w = 0; w < noWindDirections; w++) // for each direction
-                {
-
-                    double thisAngle = 360.0 / noWindDirections * w;
-
-                    bool extra = false;
-                    if (thisAngle == 0 && (Math.Abs(windDirections[h] - 360.0) < angleTol))
-                        extra = true;
-
-                    if ((Math.Abs(thisAngle - windDirections[h]) < angleTol || (Math.Abs(windDirections[h] - thisAngle) <= angleTol)) || extra)
-                    {
-                        thisWindDir = w;
-                        break;
-                    }
+            // =================================
+            // PARSING ONLY ON WEATHER DATA. NO gEOMETRT/RESULTS HERE
+            // =================================
 
 
-                }
-                
-                if (thisWindDir == -1)
-                    throw new Exception("No direction");
 
-                windVelocitiesPerDirection[thisWindDir].Add(windVelocities[h]);
-
-
-            }
-
+            // outputting stats per wind direction (not dependant on geo)
             GH_Structure<GH_Number> outSpeedsPerDirection = new GH_Structure<GH_Number>();
 
-            for (int i = 0; i < noWindDirections; i++)
+            for (int i = 0; i < windVelocitiesPerDirection.Count; i++)
             {
-
-
 
                 List<GH_Number> numbers = new List<GH_Number>();
 
@@ -150,14 +123,11 @@ namespace GHWind
                 outSpeedsPerDirection.AppendRange(numbers, new GH_Path(i));
             }
 
+            int[,] hoursAboveThresholdPerPointPerDirection = new int[noPoints, noWindDirections];
 
-            DA.SetDataTree(0, outSpeedsPerDirection);
-            DA.SetDataList(1, outDirections);
+            GH_Structure<GH_Number> outSpeedsPerPoint = new GH_Structure<GH_Number>();
+            GH_Structure<GH_Number> outHoursAboveThresholdPerPointPerDirection = new GH_Structure<GH_Number>();
 
-            return;
-    /*
-
-            /*
 
             List<int> outHoursAbovePerPoint = new List<int>();
 
@@ -237,17 +207,18 @@ namespace GHWind
             }
 
 
-            //DA.SetDataList(0, outHoursAbovePerPoint);
-            //DA.SetDataTree(1, outSpeedsPerDirection);
-            //DA.SetDataTree(2, outHoursAboveThresholdPerPointPerDirection);
-            //DA.SetDataTree(3, outSpeedsPerPoint);
+            DA.SetDataList(0, outHoursAbovePerPoint);
+            DA.SetDataTree(1, outSpeedsPerDirection);
+            DA.SetDataTree(2, outHoursAboveThresholdPerPointPerDirection);
+            DA.SetDataTree(3, outSpeedsPerPoint);
 
-            */
+
 
 
 
 
         }
+
 
         /// <summary>
         /// Provides an Icon for the component.
@@ -267,7 +238,7 @@ namespace GHWind
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("3e07eede-5406-434b-be5a-effa799600a4"); }
+            get { return new Guid("aec4cfe5-695b-4c29-8eb9-8e5141db7530"); }
         }
     }
 }

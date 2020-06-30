@@ -38,30 +38,21 @@ namespace GHWind
             //1
             pManager.AddIntegerParameter("section position", "section", "where exactly to draw section", GH_ParamAccess.item);
 
+
             //2
-            pManager.AddNumberParameter("min", "min", "minimum value. needed for colour gradient", GH_ParamAccess.item);
-
-            //3
-            pManager.AddNumberParameter("max", "max", "maximum value. needed for colour gradient", GH_ParamAccess.item);
-
-            //4
             pManager.AddGenericParameter("velocity", "velocity", "velocity", GH_ParamAccess.list);
 
-            //5
+            //3
             pManager.AddGenericParameter("pressure", "pressure", "pressure", GH_ParamAccess.item);
 
-            //6
+            //4
             pManager.AddNumberParameter("hx", "hx", "hx", GH_ParamAccess.item);
 
-            //7
+            //5
             pManager.AddNumberParameter("hy", "hy", "hy", GH_ParamAccess.item);
 
-            //8
+            //6
             pManager.AddNumberParameter("hz", "hz", "hz", GH_ParamAccess.item);
-
-            //9
-            pManager.AddIntegerParameter("colour sheme", "colours", "Colour sheme. 0: Blue (min) - Red - Yellow (max); 1: Blue (min) - Green - Red (max); 2: Black only.", GH_ParamAccess.item, 1);
-            pManager[9].Optional = true;
 
         }
 
@@ -87,32 +78,31 @@ namespace GHWind
             int sectionheight = 1;
             if (!DA.GetData(1, ref sectionheight)) { sectionheight = 1; }
 
-            double low = double.NaN;
-            if (!DA.GetData(2, ref low)) { low = 0; }
+            double low =1;
+            
 
-            double top = double.NaN;
-            if (!DA.GetData(3, ref top)) { top = 15; }
+            double top = 10;
+            
 
             double[,,] vu, vv, vw;
             List<double[,,]> vel = new List<double[,,]> { };
-            DA.GetDataList(4, vel);
+            DA.GetDataList(2, vel);
             vu = vel[0];
             vv = vel[1];
             vw = vel[2];
 
             double[,,] p = new double[,,] { };
-            DA.GetData(5, ref p);
+            DA.GetData(3, ref p);
 
             double hx = double.NaN;
             double hy = double.NaN;
             double hz = double.NaN;
-            if (!DA.GetData(6, ref hx)) { return; }
-            if (!DA.GetData(7, ref hy)) { return; }
-            if (!DA.GetData(8, ref hz)) { return; }
+            if (!DA.GetData(4, ref hx)) { return; }
+            if (!DA.GetData(5, ref hy)) { return; }
+            if (!DA.GetData(6, ref hz)) { return; }
 
 
             int colourSheme = 0;
-            DA.GetData(9, ref colourSheme);
 
 
             //min max pressure values
@@ -130,6 +120,8 @@ namespace GHWind
                 }
             }
 
+
+            
 
             Point3f[][] MVert = new Point3f[vu.GetLength(0)][];
             Color[][] Cols = new Color[vu.GetLength(0)][];
@@ -157,6 +149,7 @@ namespace GHWind
             output_vu = new double[vu.GetLength(0), vu.GetLength(1)];
             output_vv = new double[vu.GetLength(0), vu.GetLength(1)];
             output_vw = new double[vu.GetLength(0), vu.GetLength(1)];
+            output_p = new double[vu.GetLength(0), vu.GetLength(1)];
 
             //- loop through and get colours for all vertices
             //- make vertices as point3d
@@ -165,52 +158,69 @@ namespace GHWind
             index = new int[vu.GetLength(0)][];
             counter = 0;
 
+            
+
 
             for (int i = 0; i < vu.GetLength(0); i++)
             {
+                
                 MVert[i] = new Point3f[vv.GetLength(1)];
                 Cols[i] = new Color[vv.GetLength(1)];
                 index[i] = new int[vv.GetLength(1)];
+                
 
                 for (int j = 0; j < vv.GetLength(1); j++)
                 {
                     //MVert[i][j] = new Point3f((float)(i * hx + origin[0]), (float)(j * hy + origin[1]), (float)(sectionheight * hz + origin[2]));
-                        
 
+                    
                     Cols[i][j] = new Color();
+                    
                     index[i][j] = counter;
+                    
                     counter++;
 
                     double quantity = 0;
 
-                        quantity = p[i, j, sectionheight];
-                        //if (minp <= 0) quantity += Math.Abs(minp);
-                        //low = 0;
-                        //top = maxp + Math.Abs(minp);
-                        //third = (top - low) / 5;
-                        output_p[i, j] = quantity;
+                    quantity = p[i, j, sectionheight];
+                    
+                    //if (minp <= 0) quantity += Math.Abs(minp);
+                    //low = 0;
+                    //top = maxp + Math.Abs(minp);
+                    //third = (top - low) / 5;
+                    output_p[i, j] = quantity;
 
-                        Line arrowlines = new Line(new Point3d(i * hx + origin[0], j * hy + origin[1], sectionheight * hz + origin[2]),
-                                new Vector3d(vu[i, j, sectionheight], vv[i, j, sectionheight], vw[i, j, sectionheight]));
-                        quantity = arrowlines.Length;
-                        output_vu[i, j] = vu[i, j, sectionheight];
-                        output_vv[i, j] = vv[i, j, sectionheight];
-                        output_vw[i, j] = vw[i, j, sectionheight];
+                    
+
+                    Line arrowlines = new Line(new Point3d(i * hx + origin[0], j * hy + origin[1], sectionheight * hz + origin[2]),
+                            new Vector3d(vu[i, j, sectionheight], vv[i, j, sectionheight], vw[i, j, sectionheight]));
+
+                    quantity = arrowlines.Length;
+                    output_vu[i, j] = vu[i, j, sectionheight];
+                    output_vv[i, j] = vv[i, j, sectionheight];
+                    output_vw[i, j] = vw[i, j, sectionheight];
+
+                    
 
 
-                MVert[i][j] = new Point3f((float)(i * hx + origin[0]), (float)(j * hy + origin[1]), (float)(quantity));
-                MshColSection.Vertices.Add(MVert[i][j]);
+                    MVert[i][j] = new Point3f((float)(i * hx + origin[0]), (float)(j * hy + origin[1]), (float)(quantity));
+                    MshColSection.Vertices.Add(MVert[i][j]);
 
-                velocityPoints.Add(new Point3d(i * hx + origin[0], j * hy + origin[1], origin[2]));
-                values2d.Add(quantity);
+                    
+                    velocityPoints.Add(new Point3d(i * hx + origin[0], j * hy + origin[1], origin[2]));
+
+                    
+                    values2d.Add(quantity);
 
 
-                Cols[i][j] = Utilities.GetRGB(colourSheme, quantity, top, low);
+                    Cols[i][j] = Utilities.GetRGB(colourSheme, quantity, top, low);
+
+                    
                     MshColSection.VertexColors.SetColor(index[i][j], Cols[i][j]);
                 }
             }
 
-
+            
 
             for (int i = 0; i < vu.GetLength(0) - 1; i++)
             {
@@ -219,7 +229,7 @@ namespace GHWind
                     MshColSection.Faces.AddFace(index[i][j], index[i + 1][j], index[i + 1][j + 1], index[i][j + 1]);
                 }
             }
-
+            
 
             DA.SetData(0, MshColSection);
             DA.SetDataList(1, velocityPoints);
