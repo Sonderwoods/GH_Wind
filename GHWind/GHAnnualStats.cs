@@ -56,7 +56,7 @@ namespace GHWind
         }
 
 
-        double speedAverages = 0;
+        
 
 
         /// <summary>
@@ -135,6 +135,9 @@ namespace GHWind
 
             for (int p = 0; p < noPoints; p++)
             {
+
+                if (p % 100 == 0)
+                    Rhino.RhinoApp.WriteLine($"AnnStat checking point {p:000} of {noPoints}");
 
                 int hoursThisPoint = 0;
 

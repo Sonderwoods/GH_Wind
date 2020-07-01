@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Runtime.CompilerServices;
 
+
 // GH_Wind by Christoph Waibel.
 // https://github.com/christophwaibel/GH_Wind
 
@@ -44,6 +45,8 @@ namespace GHWind
         public int[,,] obstacle_cells;
 
         PostProcessor pp;
+
+        System.Diagnostics.Stopwatch watch = new System.Diagnostics.Stopwatch();
 
 
 
@@ -141,10 +144,11 @@ namespace GHWind
 
             if (xyzsize.Count == 0)
             {
-                Rhino.RhinoApp.WriteLine($"{id} - Error");
+                Rhino.RhinoApp.WriteLine($"\n[{id}] - Error\n");
                 return false;
             }
 
+            
                 
             run = true;
 
@@ -250,6 +254,8 @@ namespace GHWind
                 timestep = 0;
                 ffd_old = new FluidSolver[m];
 
+                watch.Start();
+
 
                 while (t < t_end)
                 {
@@ -261,6 +267,8 @@ namespace GHWind
 
 
                 }
+
+                watch.Stop();
 
             }
 
@@ -465,7 +473,9 @@ namespace GHWind
                 double[] w_residuals;
                 double[,,] w_t1 = ffd.w;
                 FastFluidSolverMT.Utilities.calculate_residuals(w_t1, w_t2, out w_residuals);
-                Rhino.RhinoApp.WriteLine($"[{id+1}/{maxSolvers}] {t:000}/{t_end:000}      ({(id + (t / t_end)) / maxSolvers * 100.0:0.0}%) -      p res: {p_residuals[0]:0.00} ; {p_residuals[1]:0.00} ; {p_residuals[2]:0.00},    u: {u_residuals[0]:0.00} ; {u_residuals[1]:0.00} ; {u_residuals[2]:0.00},    v: {v_residuals[0]:0.00} ; {v_residuals[1]:0.00} ; {v_residuals[2]:0.00},    w: {w_residuals[0]:0.00} ; {w_residuals[1]:0.00} ; {w_residuals[2]:0.00}");
+                double percent = (id + (t / t_end)) / maxSolvers*100.0;
+                long milisecs = watch.ElapsedMilliseconds;
+                Rhino.RhinoApp.WriteLine($"[{id+1}/{maxSolvers}] {t:000}/{t_end:000}      ({percent:0.0}%)    time elapsed: {milisecs.ToString(@"hh\:mm\:ss")}  remaining: {(milisecs/percent*(100.0-percent)).ToString(@"hh\:mm\:ss")}           -         p res: {p_residuals[0]:0.00} ; {p_residuals[1]:0.00} ; {p_residuals[2]:0.00},    u: {u_residuals[0]:0.00} ; {u_residuals[1]:0.00} ; {u_residuals[2]:0.00},    v: {v_residuals[0]:0.00} ; {v_residuals[1]:0.00} ; {v_residuals[2]:0.00},    w: {w_residuals[0]:0.00} ; {w_residuals[1]:0.00} ; {w_residuals[2]:0.00}");
 
                 //File.AppendAllText(residualstxt, Convert.ToString(p_residuals[0]) + ";" + Convert.ToString(p_residuals[1]) + ";" + Convert.ToString(p_residuals[2]) + ";" +
                 //    Convert.ToString(u_residuals[0]) + ";" + Convert.ToString(u_residuals[1]) + ";" + Convert.ToString(u_residuals[2]) + ";" +

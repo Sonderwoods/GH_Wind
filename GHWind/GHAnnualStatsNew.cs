@@ -166,6 +166,8 @@ namespace GHWind
                     if (thisWindDir == -1)
                         throw new Exception("No direction");
 
+                    //int thisWindDir = Utilities.GetClosestDirection(thisAngle) TODO
+
                     double pointAccelerationThisDir = speedups.get_DataItem(speedups.get_Path(thisWindDir), p).Value; //speedup for point p at thisWindDir
                     double pointVelocityThisHour = pointAccelerationThisDir * windVelocities[h];
 

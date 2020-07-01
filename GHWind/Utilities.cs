@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 
 
 /*
@@ -99,13 +100,83 @@ namespace GHWind
 
         }
 
+        
+        public static List<double> GetThresholds(List<double>directions)
+        {
+
+            List<double> myThresholds = new List<double>();
+
+            if (directions.Count == 0)
+                throw new Exception("no content in list");
+
+            List<double> myDirections = new List<double>(directions);
+
+            myDirections.Add(myDirections[0] - 360);
+            myDirections.Add(myDirections[0] + 360); // adding lowest + 360  in the end.. ie 375.
+            myDirections.Sort();
+
+            for (int i = 0; i < myDirections.Count - 1; i++)
+            {
+                myThresholds.Add(0.5 * (myDirections[i] + myDirections[i + 1]));
+            }
+
+            return myThresholds;
+        }
 
         /// <summary>
-        /// Writes a csv file to the specified path
+        /// 
         /// </summary>
-        /// <param name="full_path">Full path including filename, e.g. 'C:\results.csv'</param>
-        /// <param name="output_data">output data</param>
-        public static void WriteCSV(string full_path, double [,] output_data)
+        /// <param name="angle"></param>
+        /// <param name="myThresholds">List of thresholds, obtained by Utilities.GetThresholds.</param>
+        /// <param name="debug"></param>
+        /// <returns></returns>
+        public static int GetClosestDirection(double angle, List<double> myThresholds, bool debug = false)
+        {
+
+            while (true)
+            {
+                if (angle > 360.0)
+                {
+                    angle -= 360.0;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            for (int i = 0; i < myThresholds.Count-1; i++)
+            {
+
+                if (angle < myThresholds[1])
+                {
+                    if (debug) Rhino.RhinoApp.WriteLine($"x");
+                    double distRight = Math.Abs(angle + 360 - myThresholds.Max());
+                    double distLeft = Math.Abs(angle - myThresholds[0]);
+
+                    if (debug) Rhino.RhinoApp.WriteLine($"left: {distLeft}  right: {distRight}");
+
+                    if (angle + 360 > myThresholds[myThresholds.Count - 1])
+                        return i;
+                    else
+                        return myThresholds.Count-2;
+                }
+
+                if (angle >= myThresholds[i] && angle < myThresholds[i+1])
+                    return i;
+            }
+            return 0;
+
+        }
+
+
+
+                /// <summary>
+                /// Writes a csv file to the specified path
+                /// </summary>
+                /// <param name="full_path">Full path including filename, e.g. 'C:\results.csv'</param>
+                /// <param name="output_data">output data</param>
+                public static void WriteCSV(string full_path, double [,] output_data)
         {
             string[] lines;
             var list = new List<string>();
