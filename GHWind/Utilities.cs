@@ -198,4 +198,84 @@ namespace GHWind
         }
 
     }
+
+
+    public static class MatrixExtensions
+    {
+        /// <summary>
+        /// Returns the row with number 'row' of this matrix as a list.
+        /// </summary>
+        /// Source: https://stackoverflow.com/questions/16636019/how-to-get-1d-column-array-and-1d-row-array-from-2d-array-c-net/38846559
+        public static List<T> GetRow<T>(this T[,] matrix, int row)
+        {
+            var rowLength = matrix.GetLength(1);
+            var rowVector = new T[rowLength];
+
+            for (var i = 0; i < rowLength; i++)
+                rowVector[i] = matrix[row, i];
+
+            List<T> output = new List<T>(rowVector);
+            return output;
+            //return rowVector;
+        }
+
+        /// <summary>
+        /// Returns the column with number 'col' of this matrix as a list.
+        /// </summary>
+        public static List<T> GetCol<T>(this T[,] matrix, int col)
+        {
+            var colLength = matrix.GetLength(0);
+            var colVector = new T[colLength];
+
+            for (var i = 0; i < colLength; i++)
+                colVector[i] = matrix[i, col];
+            List<T> output = new List<T>(colVector);
+            return output;
+            //return colVector;
+        }
+
+
+        public static T[,] GetTable<T>(this T[,,] matrix, int table)
+        {
+            var columnLength = matrix.GetLength(1);
+            var rowLength = matrix.GetLength(2);
+
+
+            var outTable = new T[columnLength, rowLength];
+
+            for (var x = 0; x < rowLength; x++)
+                for (var y = 0; y < rowLength; y++)
+                    outTable[x, y] = matrix[table, x, y];
+
+            return outTable;
+        }
+
+
+        
+        /// <summary>
+        /// Sets the column with number 'col' of this 2D-matrix to the parameter 'colVector'.
+        /// </summary>
+        public static void SetCol<T>(this T[,] matrix, int col, T[] colVector)
+        {
+            var colLength = matrix.GetLength(0);
+
+            for (var i = 0; i < colLength; i++)
+                matrix[i, col] = colVector[i];
+        }
+
+        /// <summary>
+        /// Sets the row with number 'row' of this 2D-matrix to the parameter 'rowVector'.
+        /// </summary>
+        public static void SetRow<T>(this T[,] matrix, int row, T[] rowVector)
+        {
+            var rowLength = matrix.GetLength(1);
+
+            for (var i = 0; i < rowLength; i++)
+                matrix[row, i] = rowVector[i];
+        }
+        
+
+
+
+    }
 }
