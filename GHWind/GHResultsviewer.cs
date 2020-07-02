@@ -16,7 +16,7 @@ namespace GHWind
         public GHResultsviewer()
           : base("GHResultsviewer", "Results",
               "Description",
-              "GreenScenario", "Wind")
+              "GreenScenario", "Thermal")
         {
         }
 

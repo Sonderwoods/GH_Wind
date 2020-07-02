@@ -16,7 +16,7 @@ namespace GHWind
         public GHAnnualStats()
          : base("Annual Statistic", "AnnStat",
              "annual comfort per point. Number represent the hours of the year where 5m/s is exceeded",
-             "GreenScenario", "Wind")
+             "GreenScenario", "Thermal")
         {
         }
 

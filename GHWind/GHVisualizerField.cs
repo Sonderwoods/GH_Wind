@@ -22,7 +22,7 @@ namespace GHWind
         public GHVisualizerField()
             : base("Field Visualizer", "Field Visualizer",
                 "Dynamic field visualizer for the FFD solver. Draws and updates velocity and pressure values on a field at every timestep.",
-                "EnergyHubs", "Wind Simulation")
+                "GreenScenario", "Thermal")
         {
         }
 

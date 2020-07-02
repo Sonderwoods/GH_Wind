@@ -19,7 +19,7 @@ namespace GHWind
         public GHDiscrMesh()
             : base("Discretize Mesh", "Discretize Meshes",
                 "Discretize Meshes into cubes. Geometry for FFD solver.",
-                "EnergyHubs", "Wind Simulation")
+                "GreenScenario", "Thermal")
         {
         }
 

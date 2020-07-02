@@ -26,9 +26,9 @@ namespace GHWind
         /// Initializes a new instance of the GHFFDSolverAsync class.
         /// </summary>
         public GHFFDSolverAsyncMulti()
-          : base("GHFFDSolverAsyncMulti", "GHFFDSolverAsyncMulti",
+          : base("GS_GH_FFDSolver", "CFD",
               "Description",
-              "GreenScenario", "Wind")
+              "GreenScenario", "Thermal")
         {
         }
 
@@ -257,7 +257,7 @@ namespace GHWind
             bool run = false;
             if (!DA.GetData(8, ref run)) { return; }
 
-            int meanDt =5;
+            int meanDt =15;
             //DA.GetData(9, ref meanDt);
 
             bool stop = false;
@@ -325,7 +325,7 @@ namespace GHWind
                         bool result = computingTask.Result;
                         if (result == true)
                         {
-                            NickName = "Asynch - Task Finished!";
+                            NickName = "GS_GH_Wind - Finished!";
                             skipSolution = true;
 
                             pstagResults = ffdSolver.pstag;
@@ -346,7 +346,7 @@ namespace GHWind
                         else
                         {
                             Rhino.RhinoApp.WriteLine("failed");
-                            NickName = "Asynch - Task Failed.";
+                            NickName = "GS_GH_Wind - Failed.";
                             Grasshopper.Instances.RedrawAll();
                         }
                         componentBusy = false;
@@ -354,7 +354,7 @@ namespace GHWind
                     }
                     else if (r.Status == TaskStatus.Faulted)
                     {
-                        NickName = "Asynch - Task Faulted.";
+                        NickName = "GS_GH_Wind - Faulted.";
                         Grasshopper.Instances.RedrawAll();
                         componentBusy = false;
 
@@ -369,7 +369,7 @@ namespace GHWind
 
                 computingTask.Start();
                 if (run)
-                    NickName = "Processing...";
+                    NickName = "GS_GH_Wind - Processing...";
                 Grasshopper.Instances.RedrawAll();
                 componentBusy = true;
 

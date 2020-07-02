@@ -22,7 +22,7 @@ namespace GHWind
         public GHExportGeometry()
             : base("Export Geometry",  "Export geometry",
                 "Export geometry into a *.csv file",
-                "EnergyHubs", "Wind Simulation")
+                "GreenScenario", "Thermal")
         {
         }
 

@@ -10,7 +10,7 @@ namespace GHWind
         {
             get
             {
-                return "GHWind";
+                return "GS_GHWind";
             }
         }
         public override Bitmap Icon
@@ -26,14 +26,15 @@ namespace GHWind
             get
             {
                 //Return a short string describing the purpose of this GHA library.
-                return "";
+                return "GreenScenario modded version of GH_Wind. Using FastFluidDynamics.";
             }
         }
         public override Guid Id
         {
             get
             {
-                return new Guid("ebdd9491-bc5f-4223-b0fc-baedcfecad54");
+                return new Guid("ebdd9491-bc5f-4223-b0fc-baefcfeca254");
+                //return new Guid("ebdd9491-bc5f-4223-b0fc-baedcfecad54");
             }
         }
 
@@ -42,7 +43,7 @@ namespace GHWind
             get
             {
                 //Return a string identifying you or your company.
-                return "Empa";
+                return "Rambøll+HenningLarsen";
             }
         }
         public override string AuthorContact
@@ -50,7 +51,7 @@ namespace GHWind
             get
             {
                 //Return a string representing your preferred contact details.
-                return "";
+                return "Mathias Sønderskov; mani@henninglarsen.com";
             }
         }
     }

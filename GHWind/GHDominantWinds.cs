@@ -36,10 +36,14 @@ namespace GHWind
             //2
             pManager.AddNumberParameter("No wind dirs", "No wind dirs", "int,  no of wind directions. Typically 8, 12 or 16.", GH_ParamAccess.item);
 
+            //3
+            pManager.AddNumberParameter("Threshold", "Threshold", "number between 0.0 and 5.0 to fine tune how many ", GH_ParamAccess.item);
+
 
             //3
-            pManager.AddBooleanParameter("debug", "debug", "debug", GH_ParamAccess.item, false);
-            pManager[3].Optional = true;
+            //pManager.AddBooleanParameter("debug", "debug", "debug", GH_ParamAccess.item, false);
+            //pManager[3].Optional = true;
+            
         }
 
         /// <summary>
@@ -92,7 +96,10 @@ namespace GHWind
             int noWindDirections = (int)Math.Round(inNoWindDirections);
 
             bool debug = false;
-            DA.GetData(3, ref debug);
+            //DA.GetData(3, ref debug);
+
+            double threshold = 1;
+            DA.GetData(3, ref threshold);
 
             int noHours = inWindVelocities.Count;
             
@@ -214,7 +221,7 @@ namespace GHWind
             for (int i = 0; i < noWindDirections; i++)
             {
                 ghVelocitiesThisDirection = new List<GH_Number>();
-                if (allAccumulatedHourSpeeds[i] > allAccumulatedHourSpeeds.Sum() / noWindDirections)
+                if (allAccumulatedHourSpeeds[i] > allAccumulatedHourSpeeds.Sum() / noWindDirections / threshold)
                 {
                     for (int j = 0; j < outWindVelocitiesPerDirection[i].Count; j++)
                         ghVelocitiesThisDirection.Add(new GH_Number(outWindVelocitiesPerDirection[i][j]));

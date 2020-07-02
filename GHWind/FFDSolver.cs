@@ -48,6 +48,8 @@ namespace GHWind
 
         System.Diagnostics.Stopwatch watch = new System.Diagnostics.Stopwatch();
 
+        DateTime startTime = DateTime.Now;
+
 
 
 
@@ -239,9 +241,9 @@ namespace GHWind
             Rhino.RhinoApp.WriteLine($"[{id+1}/{maxSolvers}] - " + "GRASSHOPPER FFD Air Flow Simulation.");
             Rhino.RhinoApp.WriteLine($"[{id+1}/{maxSolvers}] - " + "GH Plug-in: https://github.com/christophwaibel/GH_Wind");
             Rhino.RhinoApp.WriteLine($"[{id+1}/{maxSolvers}] - " + "FFD Solver: https://github.com/lukasbystricky/GSoC_FFD");
-            Rhino.RhinoApp.WriteLine($"[{id+1}/{maxSolvers}] - " + "________________________________________________________");
-            Rhino.RhinoApp.WriteLine($"[{id+1}/{maxSolvers}] - " + "...Domain initialized");
-            Rhino.RhinoApp.WriteLine($"[{id+1}/{maxSolvers}] - " + "________________________________________________________");
+            //Rhino.RhinoApp.WriteLine($"[{id+1}/{maxSolvers}] - " + "________________________________________________________");
+            //Rhino.RhinoApp.WriteLine($"[{id+1}/{maxSolvers}] - " + "...Domain initialized");
+            //Rhino.RhinoApp.WriteLine($"[{id+1}/{maxSolvers}] - " + "________________________________________________________");
             }
             
 
@@ -254,8 +256,8 @@ namespace GHWind
                 timestep = 0;
                 ffd_old = new FluidSolver[m];
 
-                watch.Start();
-
+                //watch.Start();
+                startTime = DateTime.Now;
 
                 while (t < t_end)
                 {
@@ -268,7 +270,7 @@ namespace GHWind
 
                 }
 
-                watch.Stop();
+                //watch.Stop();
 
             }
 
@@ -473,14 +475,29 @@ namespace GHWind
                 double[] w_residuals;
                 double[,,] w_t1 = ffd.w;
                 FastFluidSolverMT.Utilities.calculate_residuals(w_t1, w_t2, out w_residuals);
-                double percent = (id + (t / t_end)) / maxSolvers*100.0;
-                long milisecs = watch.ElapsedMilliseconds;
-                Rhino.RhinoApp.WriteLine($"[{id+1}/{maxSolvers}] {t:000}/{t_end:000}      ({percent:0.0}%)    time elapsed: {milisecs.ToString(@"hh\:mm\:ss")}  remaining: {(milisecs/percent*(100.0-percent)).ToString(@"hh\:mm\:ss")}           -         p res: {p_residuals[0]:0.00} ; {p_residuals[1]:0.00} ; {p_residuals[2]:0.00},    u: {u_residuals[0]:0.00} ; {u_residuals[1]:0.00} ; {u_residuals[2]:0.00},    v: {v_residuals[0]:0.00} ; {v_residuals[1]:0.00} ; {v_residuals[2]:0.00},    w: {w_residuals[0]:0.00} ; {w_residuals[1]:0.00} ; {w_residuals[2]:0.00}");
 
-                //File.AppendAllText(residualstxt, Convert.ToString(p_residuals[0]) + ";" + Convert.ToString(p_residuals[1]) + ";" + Convert.ToString(p_residuals[2]) + ";" +
-                //    Convert.ToString(u_residuals[0]) + ";" + Convert.ToString(u_residuals[1]) + ";" + Convert.ToString(u_residuals[2]) + ";" +
-                //    Convert.ToString(v_residuals[0]) + ";" + Convert.ToString(v_residuals[1]) + ";" + Convert.ToString(v_residuals[2]) + ";" +
-                //    Convert.ToString(w_residuals[0]) + ";" + Convert.ToString(w_residuals[1]) + ";" + Convert.ToString(w_residuals[2]) + "\n");
+
+
+                double percent = (id + (t / t_end)) / maxSolvers*100.0;
+
+
+                TimeSpan timeElapsed = TimeSpan.FromTicks(DateTime.Now.Subtract(startTime).Ticks);
+
+                string elapsedTime = String.Format("elapsed: {0:00}:{1:00}:{2:00}      ", timeElapsed.Hours, timeElapsed.Minutes, timeElapsed.Seconds);
+                
+                string remainingTime = "";
+
+                if (id > 0 || t > 10)
+                {
+                    TimeSpan timeRemaining = TimeSpan.FromTicks(DateTime.Now.Subtract(startTime).Ticks * (long)((100.0 - percent) / percent));
+                    remainingTime = String.Format("(remaining: {0:00}:{1:00}:{2:00})", timeRemaining.Hours, timeRemaining.Minutes, timeRemaining.Seconds);
+
+                }
+
+                Rhino.RhinoApp.WriteLine($"[ {id+1,4:0}/{maxSolvers,4:0} ]  {t,4:0} /{t_end,4:0}      {percent,4:0.0}%     {elapsedTime}    {remainingTime}           -         " + 
+                    $"p res: {p_residuals[0]:00.00} ;  {p_residuals[1]:00.00} ;  {p_residuals[2]:00.00},     u: {u_residuals[0]:00.00} ;  {u_residuals[1]:00.00} ;  {u_residuals[2]:00.00},    " + 
+                    $"v: {v_residuals[0]:00.00} ;  {v_residuals[1]:00.00} ;  {v_residuals[2]:00.00},     w: {w_residuals[0]:00.00} ;  {w_residuals[1]:00.00} ;  {w_residuals[2]:00.00}");
+
             }
             else
             {

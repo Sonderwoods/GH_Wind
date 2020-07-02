@@ -64,19 +64,11 @@
     <Compile Include="GHAnnualStatsNew.cs" />
     <Compile Include="GHDiscrMesh.cs" />
     <Compile Include="GHExportGeometry.cs" />
-    <Compile Include="GHFFDliddrivencavity.cs" />
-    <Compile Include="GHFFDSolver.cs" />
-    <Compile Include="GHFFDSolverAsync.cs" />
     <Compile Include="GHFFDSolverAsyncMulti.cs" />
     <Compile Include="GHFFDSolverAytac.cs" />
-    <Compile Include="GHFFDSolverV2.cs" />
-    <Compile Include="GHFFDSolverV3.cs" />
-    <Compile Include="GHFFDSolverWentao.cs" />
     <Compile Include="GHDominantWinds.cs" />
-    <Compile Include="GHPrintCellValues.cs" />
     <Compile Include="GHResultsviewer.cs" />
     <Compile Include="GHTestClosestDir.cs" />
-    <Compile Include="GHVisualizeCp.cs" />
     <Compile Include="GHVisualizerField.cs" />
     <Compile Include="GHVisualizerFieldComfort.cs" />
     <Compile Include="GHVisualizerVectors.cs" />
@@ -131,8 +123,8 @@
   </Target>
   -->
   <PropertyGroup>
-    <PostBuildEvent>Copy "$(TargetPath)" "%25AppData%25\Grasshopper\Libraries\$(ProjectName).gha"
-Copy "$(TargetPath)" "$(TargetDir)$(ProjectName).gha"
+    <PostBuildEvent>Copy "$(TargetPath)" "%25AppData%25\Grasshopper\Libraries\GS_$(ProjectName).gha"
+Copy "$(TargetPath)" "$(TargetDir)GS_$(ProjectName).gha"
 Erase "$(TargetPath)"</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
