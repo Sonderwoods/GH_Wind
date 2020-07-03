@@ -22,7 +22,7 @@ namespace GHWind
         public GHVisualizerField()
             : base("Field Visualizer", "Field Visualizer",
                 "Dynamic field visualizer for the FFD solver. Draws and updates velocity and pressure values on a field at every timestep.",
-                "GreenScenario", "Thermal")
+                "GreenScenario", "07 | Preview")
         {
         }
 
@@ -405,7 +405,7 @@ namespace GHWind
             {
                 //You can add image files to your project resources and access them like this:
                 // return Resources.IconForThisComponent;
-                return GHWind.Properties.Resources.visu_field;
+                return GHWind.Properties.Resources.gs_wind;
             }
         }
 

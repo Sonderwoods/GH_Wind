@@ -14,9 +14,9 @@ namespace GHWind
         /// Initializes a new instance of the GHAnnualStatsNew class.
         /// </summary>
         public GHAnnualStats()
-         : base("Annual Statistic", "AnnStat",
+         : base("OLD Annual Statistic", "AnnStat",
              "annual comfort per point. Number represent the hours of the year where 5m/s is exceeded",
-             "GreenScenario", "Thermal")
+             "GreenScenario", "test")
         {
         }
 
@@ -232,7 +232,7 @@ namespace GHWind
             {
                 //You can add image files to your project resources and access them like this:
                 // return Resources.IconForThisComponent;
-                return null;
+                return GHWind.Properties.Resources.gs_wind;
             }
         }
 

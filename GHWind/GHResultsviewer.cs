@@ -16,7 +16,7 @@ namespace GHWind
         public GHResultsviewer()
           : base("GHResultsviewer", "Results",
               "Description",
-              "GreenScenario", "Thermal")
+              "GreenScenario", "07 | Preview")
         {
         }
 
@@ -241,7 +241,7 @@ namespace GHWind
             {
                 //You can add image files to your project resources and access them like this:
                 // return Resources.IconForThisComponent;
-                return null;
+                return GHWind.Properties.Resources.gs_wind;
             }
         }
 

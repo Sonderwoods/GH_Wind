@@ -22,7 +22,7 @@ namespace GHWind
         public GHExportGeometry()
             : base("Export Geometry",  "Export geometry",
                 "Export geometry into a *.csv file",
-                "GreenScenario", "Thermal")
+                "GreenScenario", "05 | Utility")
         {
         }
 
@@ -81,7 +81,7 @@ namespace GHWind
             {
                 //You can add image files to your project resources and access them like this:
                 // return Resources.IconForThisComponent;
-                return GHWind.Properties.Resources.discr_export;
+                return GHWind.Properties.Resources.gs_wind;
             }
         }
 

@@ -26,9 +26,11 @@ namespace GHWind
         /// Initializes a new instance of the GHFFDSolverAsync class.
         /// </summary>
         public GHFFDSolverAsyncMulti()
-          : base("GS_GH_FFDSolver", "CFD",
-              "Description",
-              "GreenScenario", "Thermal")
+          : base("GS_WindEngine", "GS_CFD",
+              "Main component to solve the wind from several orientations.\n" +
+                "Based on GH_Wind Plug-in: https://github.com/christophwaibel/GH_Wind \n" +
+                "FFD Solver: https://github.com/lukasbystricky/GSoC_FFD",
+              "GreenScenario", "03 | Engines")
         {
         }
 
@@ -387,7 +389,7 @@ namespace GHWind
             {
                 //You can add image files to your project resources and access them like this:
                 // return Resources.IconForThisComponent;
-                return null;
+                return GHWind.Properties.Resources.gs_wind;
             }
         }
 

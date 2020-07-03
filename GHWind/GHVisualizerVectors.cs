@@ -22,7 +22,7 @@ namespace GHWind
         public GHVisualizerVectors()
             : base("Vector Visualizer", "Vector Visualizer",
                 "Dynamic vector visualizer for the FFD solver. Draws and updates velocity vectors (and pressure values) at every timestep.",
-                "GreenScenario", "Thermal")
+                "GreenScenario", "01 | Toolkit")
         {
         }
 
@@ -253,7 +253,7 @@ namespace GHWind
                 //You can add image files to your project resources and access them like this:
                 // return Resources.IconForThisComponent;
                 //return null;
-                return GHWind.Properties.Resources.visu_vec;
+                return GHWind.Properties.Resources.gs_wind;
             }
         }
 

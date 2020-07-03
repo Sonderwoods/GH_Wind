@@ -65,7 +65,6 @@
     <Compile Include="GHDiscrMesh.cs" />
     <Compile Include="GHExportGeometry.cs" />
     <Compile Include="GHFFDSolverAsyncMulti.cs" />
-    <Compile Include="GHFFDSolverAytac.cs" />
     <Compile Include="GHDominantWinds.cs" />
     <Compile Include="GHResultsviewer.cs" />
     <Compile Include="GHTestClosestDir.cs" />
@@ -91,9 +90,6 @@
     <None Include="Resources\aytac.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\cp.png" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="Resources\discr.png" />
   </ItemGroup>
   <ItemGroup>
@@ -113,6 +109,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\wentao.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\gs_wind.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -19,7 +19,7 @@ namespace GHWind
         public GHDiscrMesh()
             : base("Discretize Mesh", "Discretize Meshes",
                 "Discretize Meshes into cubes. Geometry for FFD solver.",
-                "GreenScenario", "Thermal")
+                "GreenScenario", "01 | Toolkit")
         {
         }
 
@@ -185,7 +185,8 @@ namespace GHWind
             {
                 //You can add image files to your project resources and access them like this:
                 // return Resources.IconForThisComponent;
-                return GHWind.Properties.Resources.discr;
+                
+                return GHWind.Properties.Resources.gs_wind;
             }
         }
 

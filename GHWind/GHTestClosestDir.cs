@@ -14,7 +14,7 @@ namespace GHWind
         public GHTestClosestDir()
           : base("GHTestClosestDir", "ClosestDir",
               "Description",
-              "GreenScenario", "Test")
+              "GreenScenario", "05 | Utility")
         {
         }
 
@@ -74,7 +74,7 @@ namespace GHWind
             {
                 //You can add image files to your project resources and access them like this:
                 // return Resources.IconForThisComponent;
-                return null;
+                return GHWind.Properties.Resources.gs_wind;
             }
         }
 

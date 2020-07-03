@@ -17,7 +17,7 @@ namespace GHWind
         public GHDominantWinds()
          : base("Dominant Winds", "DomWinds",
              "Find predominant wind directions",
-             "GreenScenario", "Thermal")
+             "GreenScenario", "01 | Toolkit")
         {
         }
 
@@ -408,7 +408,7 @@ namespace GHWind
             {
                 //You can add image files to your project resources and access them like this:
                 // return Resources.IconForThisComponent;
-                return null;
+                return GHWind.Properties.Resources.gs_wind;
             }
         }
 

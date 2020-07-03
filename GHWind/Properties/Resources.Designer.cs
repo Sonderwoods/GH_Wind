@@ -73,16 +73,6 @@ namespace GHWind.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap cp {
-            get {
-                object obj = ResourceManager.GetObject("cp", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
         internal static System.Drawing.Bitmap discr {
             get {
                 object obj = ResourceManager.GetObject("discr", resourceCulture);
@@ -96,6 +86,16 @@ namespace GHWind.Properties {
         internal static System.Drawing.Bitmap discr_export {
             get {
                 object obj = ResourceManager.GetObject("discr_export", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap gs_wind {
+            get {
+                object obj = ResourceManager.GetObject("gs_wind", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
