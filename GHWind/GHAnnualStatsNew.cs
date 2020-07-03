@@ -124,8 +124,8 @@ namespace GHWind
             if (debug) Rhino.RhinoApp.WriteLine($"noPoints: {noPoints},  inWindVelocities.Branches[0].Count: {inPreWindVelocities.Branches[0].Count}");
 
 
-            if (debug) Rhino.RhinoApp.WriteLine($"foreach  inWindVelocities.PathCount {inPreWindVelocities.PathCount}:");
-            for (int i = 0; i < inPreWindVelocities.PathCount; i++)
+            if (debug) Rhino.RhinoApp.WriteLine($"foreach  inWindVelocities.PathCount {inSimVelocitiesPerPointPerDir.PathCount}:");
+            for (int i = 0; i < inSimVelocitiesPerPointPerDir.PathCount; i++)
             {
 
                 if (debug && i<10) Rhino.RhinoApp.WriteLine($"foreach  noPoints {noPoints}:");
@@ -178,7 +178,7 @@ namespace GHWind
             // TODO: THIS PART IS BUGGY !!  RETURNS MORE THAN 8760 HOURS OF DISCOMFORT ANNUALLY...
 
 
-            if (debug) Rhino.RhinoApp.WriteLine($"stats 004");
+            //if (debug) Rhino.RhinoApp.WriteLine($"stats 004");
             outThresholdHoursPerPointPerDirection = new GH_Structure<GH_Number>();
             outThresholdHoursPerPoint = new List<double>(new double[noPoints].ToList());
 
@@ -196,9 +196,9 @@ namespace GHWind
                     for (int v = 0; v < inPreWindVelocities[d].Count; v++)
                     {
 
-                        //if (debug && v < 10) Rhino.RhinoApp.WriteLine($"[{p}][{d}][{v}]  windVelocitiesPerDirPerPoint[{d}][{v}] {windVelocitiesPerDirPerPoint[d][v]} * speedupsPerPointPerDir[{p}, {d}] {speedupsPerPointPerDir[p, d]}");
+                        if (debug && v < 5 && p<5 && d<5) Rhino.RhinoApp.WriteLine($"[{p}][{d}][{v}]  windSimVelocitiesPerDirPerPoint[{d}][{v}] {windSimVelocitiesPerDirPerPoint[d][v]} * inPreWindVelocities[{d}, {p}] {inPreWindVelocities[p][d]}");
                         //if (debug && d < 5) Rhino.RhinoApp.WriteLine($"speedupsPerPointPerDir[{p}, {d}] {speedupsPerPointPerDir[p, d]}");
-                        if (windSimVelocitiesPerDirPerPoint[d][v] * simSpeedupsPerPointPerDir[p, d] >= thresholdVelocity && (Utilities.GetClosestDirection(windPreDirections[d], thresholds) == d))
+                        if (windSimVelocitiesPerDirPerPoint[d][v] * inPreWindVelocities[d][p].Value >= thresholdVelocity && (Utilities.GetClosestDirection(windPreDirections[d], thresholds) == d))
                         {
                             if (p >= noPoints) throw new Exception("p too high");
                             outThresholdHoursPerPoint[p]++;
@@ -209,7 +209,6 @@ namespace GHWind
 
                 }
 
-                if (debug) Rhino.RhinoApp.WriteLine($"p={p} .. stats 004b");
                 //outThresholdHoursPerPoint.Add(thresholdHoursPerPointPerDirection.GetRow(p).Sum());
 
                 for (int i = 0; i < thresholdHoursPerPointPerDirection.GetRow(p).Count; i++)
@@ -228,7 +227,7 @@ namespace GHWind
                     if (debug && p < 5) Rhino.RhinoApp.WriteLine($"thresholdHoursPerPointPerDirection[{p}, {d}]");
                     n.Add(new GH_Number(thresholdHoursPerPointPerDirection[p, d]));
                 }
-                if (debug && p < 5) Rhino.RhinoApp.WriteLine($"x");
+                
                 outThresholdHoursPerPointPerDirection.AppendRange(n, new GH_Path(p));
             }
 
