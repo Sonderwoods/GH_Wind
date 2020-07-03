@@ -64,6 +64,7 @@ namespace GHWind
             pManager.AddMeshParameter("value field", "value field", "section showing pressure or velocity values", GH_ParamAccess.item);
             pManager.AddPointParameter("pts", "pts", "pts", GH_ParamAccess.list);
             pManager.AddNumberParameter("vel", "vel", "vel", GH_ParamAccess.list);
+            pManager.AddVectorParameter("vects", "vects", "vects", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -136,9 +137,11 @@ namespace GHWind
 
             List<Point3d> velocityPoints = new List<Point3d>();
             List<double> values2d = new List<double>();
-                
 
-//z
+            double scale = 1;
+
+
+            //z
             //8---9---10--11
             //| x | x | x |
             //4---5---6---7
@@ -157,6 +160,9 @@ namespace GHWind
             Cols = new Color[vu.GetLength(0)][];
             index = new int[vu.GetLength(0)][];
             counter = 0;
+
+            List<Point3d> outPoints = new List<Point3d>();
+            List<Vector3d> outVectors = new List<Vector3d>();
 
             
 
@@ -190,10 +196,14 @@ namespace GHWind
                     //third = (top - low) / 5;
                     output_p[i, j] = quantity;
 
-                    
 
-                    Line arrowlines = new Line(new Point3d(i * hx + origin[0], j * hy + origin[1], sectionheight * hz + origin[2]),
-                            new Vector3d(vu[i, j, sectionheight], vv[i, j, sectionheight], vw[i, j, sectionheight]));
+                    Point3d point = (new Point3d(i * hx + origin[0], j * hy + origin[1], sectionheight * hz + origin[2]));
+                    Vector3d vect = new Vector3d(vu[i, j, sectionheight], vv[i, j, sectionheight], vw[i, j, sectionheight]);
+
+                    outPoints.Add(point);
+                    outVectors.Add(vect);
+
+                    Line arrowlines = new Line(point, vect);
 
                     quantity = arrowlines.Length;
                     output_vu[i, j] = vu[i, j, sectionheight];
@@ -217,6 +227,8 @@ namespace GHWind
 
                     
                     MshColSection.VertexColors.SetColor(index[i][j], Cols[i][j]);
+
+
                 }
             }
 
@@ -234,6 +246,7 @@ namespace GHWind
             DA.SetData(0, MshColSection);
             DA.SetDataList(1, velocityPoints);
             DA.SetDataList(2, values2d);
+            DA.SetDataList(3, outVectors);
 
 
 

@@ -48,7 +48,7 @@ namespace GHWind
 
         System.Diagnostics.Stopwatch watch = new System.Diagnostics.Stopwatch();
 
-        DateTime startTime = DateTime.Now;
+        DateTime startTime;
 
 
 
@@ -94,8 +94,9 @@ namespace GHWind
         {
         }
 
-        public FFDSolver(string filepath, List<int> Nxyz, List<double> xyzsize, List<double[]> geom,  double t_end, double dt, int meanDt, double Vmet = 10, int terrain = 0, string strparam = "", bool calcres = true, int maxSolvers = 8)
+        public FFDSolver(string filepath, List<int> Nxyz, List<double> xyzsize, List<double[]> geom,  double t_end, double dt, int meanDt, DateTime startTime, double Vmet = 10, int terrain = 0, string strparam = "", bool calcres = true, int maxSolvers = 8)
         {
+            this.startTime = startTime;
             id = ID;
             ID += 1;
             
@@ -257,7 +258,7 @@ namespace GHWind
                 ffd_old = new FluidSolver[m];
 
                 //watch.Start();
-                startTime = DateTime.Now;
+                //startTime = DateTime.Now;
 
                 while (t < t_end)
                 {
@@ -489,7 +490,7 @@ namespace GHWind
 
                 if (id > 0 || t > 10)
                 {
-                    TimeSpan timeRemaining = TimeSpan.FromTicks(DateTime.Now.Subtract(startTime).Ticks * (long)((100.0 - percent) / percent));
+                    TimeSpan timeRemaining = TimeSpan.FromTicks(DateTime.Now.Subtract(startTime).Ticks * (long)((100.0 - percent+0.1) / percent+0.1));
                     remainingTime = String.Format("(remaining: {0:00}:{1:00}:{2:00})", timeRemaining.Hours, timeRemaining.Minutes, timeRemaining.Seconds);
 
                 }

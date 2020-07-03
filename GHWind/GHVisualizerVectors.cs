@@ -60,20 +60,26 @@ namespace GHWind
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             pManager.AddLineParameter("draw lines", "draw lines", "draw coloured lines", GH_ParamAccess.list);
+            pManager.AddPointParameter("Points", "Points", "Points", GH_ParamAccess.list);
+            pManager.AddVectorParameter("Vectors", "Vectors", "Vectors", GH_ParamAccess.list);
             //pManager.HideParameter(0);
         }
 
-        private readonly List<Line> _lines = new List<Line>();
-        private readonly List<int> _widths = new List<int>();
-        private readonly List<Color> _colors = new List<Color>();
-        protected override void BeforeSolveInstance()
-        {
+        //private readonly List<Line> _lines = new List<Line>();
+        //private readonly List<Point3d> _points = new List<Point3d>();
+        //private readonly List<Vector3d> _vectors = new List<Vector3d>();
+        //private readonly List<int> _widths = new List<int>();
+        //private readonly List<Color> _colors = new List<Color>();
+        //protected override void BeforeSolveInstance()
+        //{
 
-            _lines.Clear();
-            _widths.Clear();
-            _colors.Clear();
+        //    _lines.Clear();
+        //    _widths.Clear();
+        //    _colors.Clear();
+        //    _points.Clear();
+        //    _vectors.Clear();
 
-        }
+        //}
 
 
 
@@ -83,9 +89,19 @@ namespace GHWind
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            //List<Line> lines = new List<Line>();
-            //DA.GetDataList(0, lines);
-            Point3d origin = Point3d.Unset;
+
+
+        List<Line> _lines = new List<Line>();
+        List<Point3d> _points = new List<Point3d>();
+        List<Vector3d> _vectors = new List<Vector3d>();
+        List<int> _widths = new List<int>();
+        List<Color> _colors = new List<Color>();
+
+
+
+        //List<Line> lines = new List<Line>();
+        //DA.GetDataList(0, lines);
+        Point3d origin = Point3d.Unset;
             if (!DA.GetData(0, ref origin)) { origin = new Point3d(0,0,0); }
 
             int xyz = 1;
@@ -155,10 +171,13 @@ namespace GHWind
                     {
                         for (int k = 0; k < vw.GetLength(2); k++)
                         {
+                            
                             Line arrowlines = new Line(new Point3d(sectionheight * hx + 0.5 * hx + origin[0], j * hy + 0.5 * hy + origin[1], k * hz + 0.5 * hz + origin[2]),
                                      new Vector3d(vu[sectionheight, j, k] * scale, vv[sectionheight, j, k] * scale, vw[sectionheight, j, k] * scale));
                             _lines.Add(arrowlines);
                             _widths.Add(1);
+                            _points.Add(new Point3d(sectionheight * hx + 0.5 * hx + origin[0], j * hy + 0.5 * hy + origin[1], k * hz + 0.5 * hz + origin[2]));
+                            _vectors.Add(new Vector3d(vu[sectionheight, j, k] * scale, vv[sectionheight, j, k] * scale, vw[sectionheight, j, k] * scale));
 
                             double quantity = arrowlines.Length / scale;
                             if (dispP)
@@ -180,8 +199,10 @@ namespace GHWind
                                      new Vector3d(vu[i, sectionheight, k] * scale, vv[i, sectionheight, k] * scale, vw[i, sectionheight, k] * scale));
                             _lines.Add(arrowlines);
                             _widths.Add(1);
+                            _points.Add(new Point3d(i * hx + 0.5 * hx + origin[0], sectionheight * hy + 0.5 * hy + origin[1], k * hz + 0.5 * hz + origin[2]));
+                            _vectors.Add(new Vector3d(vu[i, sectionheight, k] * scale, vv[i, sectionheight, k] * scale, vw[i, sectionheight, k] * scale));
 
-                            double quantity = arrowlines.Length/scale;
+                           double quantity = arrowlines.Length/scale;
                             if (dispP)
                             {
                                 quantity = p[i, sectionheight, k];
@@ -200,6 +221,8 @@ namespace GHWind
                             Line arrowlines = new Line(new Point3d(i * hx + 0.5 * hx + origin[0], j * hy + 0.5 * hy + origin[1], sectionheight * hz + 0.5 * hz + origin[2]),
                                      new Vector3d(vu[i, j, sectionheight] * scale, vv[i, j, sectionheight] * scale, vw[i, j, sectionheight] * scale));
                             _lines.Add(arrowlines);
+                            _points.Add(new Point3d(i * hx + 0.5 * hx + origin[0], j * hy + 0.5 * hy + origin[1], sectionheight * hz + 0.5 * hz + origin[2]));
+                            _vectors.Add(new Vector3d(vu[i, j, sectionheight] * scale, vv[i, j, sectionheight] * scale, vw[i, j, sectionheight] * scale));
                             _widths.Add(1);
 
                             double quantity = arrowlines.Length/ scale;
@@ -221,23 +244,25 @@ namespace GHWind
 
             }
             DA.SetDataList(0, _lines);
+            DA.SetDataList(1, _points);
+            DA.SetDataList(2, _vectors);
 
             
           
         }
 
-        public override void DrawViewportWires(IGH_PreviewArgs args)
-        {
-            base.DrawViewportWires(args);
+        //public override void DrawViewportWires(IGH_PreviewArgs args)
+        //{
+        //    base.DrawViewportWires(args);
 
-            for (int i = 0; i < _lines.Count; i++)
-            {
-                args.Display.DrawLine(_lines[i], _colors[i],_widths[i]);
-                args.Display.DrawArrowHead(_lines[i].To, _lines[i].Direction, _colors[i], _lines[i].Length * 2.0, 0);
-            }
-            Rhino.RhinoDoc.ActiveDoc.Views.Redraw();
-            Rhino.RhinoApp.Wait();
-        }
+        //    for (int i = 0; i < _lines.Count; i++)
+        //    {
+        //        args.Display.DrawLine(_lines[i], _colors[i],_widths[i]);
+        //        args.Display.DrawArrowHead(_lines[i].To, _lines[i].Direction, _colors[i], _lines[i].Length * 2.0, 0);
+        //    }
+        //    Rhino.RhinoDoc.ActiveDoc.Views.Redraw();
+        //    Rhino.RhinoApp.Wait();
+        //}
 
 
 

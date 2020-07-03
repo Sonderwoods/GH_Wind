@@ -26,7 +26,7 @@ namespace GHWind
         /// Initializes a new instance of the GHFFDSolverAsync class.
         /// </summary>
         public GHFFDSolverAsyncMulti()
-          : base("GS_WindEngine", "GS_CFD",
+          : base("WindEngine", "GS_CFD",
               "Main component to solve the wind from several orientations.\n" +
                 "Based on GH_Wind Plug-in: https://github.com/christophwaibel/GH_Wind \n" +
                 "FFD Solver: https://github.com/lukasbystricky/GSoC_FFD",
@@ -155,7 +155,7 @@ namespace GHWind
         {
 
             StopAll();
-
+            DateTime now = DateTime.Now;
             ffdSolvers = new List<FFDSolver>();
             FFDSolver.ID = 0;
 
@@ -171,6 +171,7 @@ namespace GHWind
                     t_end,
                     dt,
                     meanDt,
+                    now,
                     Vmet,
                     terrain,
                     strparam,
