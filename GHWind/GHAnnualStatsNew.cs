@@ -14,7 +14,7 @@ namespace GHWind
         /// Initializes a new instance of the GHAnnualStatsNew class.
         /// </summary>
         public GHAnnualStatsNew()
-         : base("Annual Statistic new", "AnnStat new",
+         : base("Annual Statistic", "Ann Wind Stats",
              "annual comfort per point. Number represent the hours of the year where 5m/s is exceeded",
              "GreenScenario", "07 | Preview")
         {
@@ -53,16 +53,19 @@ namespace GHWind
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddNumberParameter("Comfort per Point", "Comfort per Point", "annual comfort per point. Number represent the hours of the year where 5m/s is exceeded", GH_ParamAccess.list);
+            pManager.AddNumberParameter("Comfort per Point", "Comfort per Point", "annual comfort per point. % of the year where 5m/s is exceeded", GH_ParamAccess.list);
             pManager.AddNumberParameter("xx Speed per Direction", "SPD", "x", GH_ParamAccess.tree);
-            pManager.AddNumberParameter("xx hours above threshold, per direction", "hours above threshold, per direction", "x", GH_ParamAccess.tree);
-            pManager.AddNumberParameter("xx vels per point", "VPP", "x", GH_ParamAccess.tree);
+            pManager.AddNumberParameter("average windspeeds in the point", "Vavg", "Average wind speeds", GH_ParamAccess.list);
+            //pManager.AddNumberParameter("xx hours above threshold, per direction", "hours above threshold, per direction", "x", GH_ParamAccess.tree);
+            //pManager.AddNumberParameter("xx vels per point", "VPP", "x", GH_ParamAccess.tree);
         }
 
 
         double averageInputs = 0;
         double oldSumOfVelocities = 0;
-        
+
+        double[] accumulatedSpeedsPerPoint;
+
         List<double> outThresholdHoursPerPoint = new List<double>();
         GH_Structure<GH_Number> outThresholdHoursPerPointPerDirection = new GH_Structure<GH_Number>();
         //double[,] thresholdHoursPerPointPerDirection;
@@ -86,6 +89,7 @@ namespace GHWind
             GH_Structure<GH_Number> inVrelSimVelocitiesPerDirPerPoint = new GH_Structure<GH_Number>();
             DA.GetDataTree(2, out inVrelSimVelocitiesPerDirPerPoint);
 
+
             double VmaxThreshold = 5.0;
             DA.GetData(3, ref VmaxThreshold);
 
@@ -99,12 +103,16 @@ namespace GHWind
             if (!run)
             {
                 DA.SetDataList(0, outThresholdHoursPerPoint);
-                DA.SetDataTree(1, outThresholdHoursPerPointPerDirection);
+                //DA.SetDataTree(1, outThresholdHoursPerPointPerDirection);
+                DA.SetDataList(2, accumulatedSpeedsPerPoint);
                 return;
             }
 
             int noPoints = inVrelSimVelocitiesPerDirPerPoint.get_Branch(0).Count;
             int noWindDirections = inVrelSimVelocitiesPerDirPerPoint.Branches.Count;
+
+
+            accumulatedSpeedsPerPoint = new double[noPoints];
 
 
 
@@ -173,7 +181,10 @@ namespace GHWind
                     for (int s = 0; s < inSPDsPerDirPerHours[d].Count; s++)
                     {
 
+                        
                         double result = inSPDsPerDirPerHours.Branches[d][s].Value * inVrelSimVelocitiesPerDirPerPoint.Branches[d][p].Value;
+
+                        accumulatedSpeedsPerPoint[p] += result;
 
                         if (debug && s < 5 && p < 5 && d < 5) Rhino.RhinoApp.WriteLine($"[{p}][{d}][{s}]  inSPDsPerDirPerHours.Branches[{d}][{s}].Value {inSPDsPerDirPerHours.Branches[d][s].Value:0.0} *  inVrelSimVelocitiesPerDirPerPoint.Branches[{d}][{p}].Value { inVrelSimVelocitiesPerDirPerPoint.Branches[d][p].Value:0.0} = {result:0.0}");
                         if (result >= VmaxThreshold)
@@ -189,6 +200,8 @@ namespace GHWind
 
 
                 }
+
+                accumulatedSpeedsPerPoint[p] /= 8760.0; //should give average speed in this point over a year.
 
                 outThresholdHoursPerPointPerDirection.AppendRange(speedsInThisPointPerDir, new GH_Path(p));
 
@@ -206,12 +219,14 @@ namespace GHWind
                 for (int j = 0; j < outThresholdHoursPerPointPerDirection.Branches[i].Count; j++)
                 {
 
-                    outThresholdHoursPerPoint[i] += outThresholdHoursPerPointPerDirection.Branches[i][j].Value;
+                    outThresholdHoursPerPoint[i] += outThresholdHoursPerPointPerDirection.Branches[i][j].Value / 8760.0 * 100.0; // to convert to pct per year
                 }
             }
-            DA.SetDataList(0, hoursOutsideComfortPerPoint);
+            //DA.SetDataList(0, hoursOutsideComfortPerPoint);
 
-            DA.SetData(1, outThresholdHoursPerPoint);
+            //DA.SetData(1, outThresholdHoursPerPoint);
+
+            //DA.SetDataList(2, accumulatedSpeedsPerPoint);
 
 
 
