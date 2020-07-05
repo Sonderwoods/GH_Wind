@@ -14,8 +14,8 @@ namespace GHWind
         /// Initializes a new instance of the GHResultsviewer class.
         /// </summary>
         public GHResultsviewer()
-          : base("GHResultsviewer", "Results",
-              "Description",
+          : base("Wind results viewer", "Wind Results",
+              "Connect me to the CFD simulation to get outputs.",
               "GreenScenario", "07 | Preview")
         {
         }

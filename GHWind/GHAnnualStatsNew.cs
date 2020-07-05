@@ -126,7 +126,6 @@ namespace GHWind
 
             if (debug) Rhino.RhinoApp.WriteLine($"stats 003");
 
-            //thresholdHoursPerPointPerDirection = new double[noPoints, noWindDirections];
 
             double newSumOfVelocities = 0;
 
@@ -170,7 +169,7 @@ namespace GHWind
 
                     int hoursThisPointAndDirection = 0;
 
-                    if (debug && d < 3 && p < 5) Rhino.RhinoApp.WriteLine($"foreach SPDS: inSPDsPerDirPerHours[d].Count: {inSPDsPerDirPerHours[d].Count}");
+                    if (debug && d < 3 && p < 5) Rhino.RhinoApp.WriteLine($"foreach SPDS: inSPDsPerDirPerHours[{d}].Count: {inSPDsPerDirPerHours[d].Count}");
                     for (int s = 0; s < inSPDsPerDirPerHours[d].Count; s++)
                     {
 

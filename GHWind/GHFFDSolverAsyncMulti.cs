@@ -28,6 +28,7 @@ namespace GHWind
         public GHFFDSolverAsyncMulti()
           : base("WindEngine", "GS_CFD",
               "Main component to solve the wind from several orientations.\n" +
+                "You would need at least 32Gb Ram for this dude to run when cells is ~1M. >8 or >12 cores also preferred.\n" +
                 "Based on GH_Wind Plug-in: https://github.com/christophwaibel/GH_Wind \n" +
                 "FFD Solver: https://github.com/lukasbystricky/GSoC_FFD",
               "GreenScenario", "03 | Engines")
