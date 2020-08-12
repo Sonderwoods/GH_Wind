@@ -14,7 +14,7 @@ namespace GHWind
         public GHTestClosestDir()
           : base("GHTestClosestDir", "ClosestDir",
               "Description",
-              "GreenScenario", "05 | Utility")
+              "GH_Wind", "05 | Utility")
         {
         }
 

@@ -22,7 +22,7 @@ namespace GHWind
         public GHVisualizerVectors()
             : base("Vector Visualizer", "Vector Visualizer",
                 "Dynamic vector visualizer for the FFD solver. Draws and updates velocity vectors (and pressure values) at every timestep.",
-                "GreenScenario", "01 | Toolkit")
+                "GH_Wind", "01 | Toolkit")
         {
         }
 

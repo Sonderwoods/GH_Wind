@@ -16,7 +16,7 @@ namespace GHWind
         public GHResultsviewer()
           : base("Wind results viewer", "Wind Results",
               "Connect me to the CFD simulation to get outputs.",
-              "GreenScenario", "07 | Preview")
+              "GH_Wind", "07 | Preview")
         {
         }
 

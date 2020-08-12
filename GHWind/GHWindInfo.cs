@@ -10,7 +10,7 @@ namespace GHWind
         {
             get
             {
-                return "GS_GHWind";
+                return "GH_Wind";
             }
         }
         public override Bitmap Icon
@@ -26,7 +26,7 @@ namespace GHWind
             get
             {
                 //Return a short string describing the purpose of this GHA library.
-                return "GreenScenario modded version of GH_Wind. Using FastFluidDynamics.";
+                return "HLA/Rambøll modded version of GH_Wind. Using FastFluidDynamics.";
             }
         }
         public override Guid Id

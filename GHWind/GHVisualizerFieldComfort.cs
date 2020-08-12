@@ -22,7 +22,7 @@ namespace GHWind
         public GHVisualizerFieldComfort()
             : base("Field Visualizer Comfort", "Field Visualizer Comfort",
                 "Dynamic field visualizer for the FFD solver. Draws and updates velocity and pressure values on a field at every timestep.",
-                "GreenScenario", "07 | Preview")
+                "GH_Wind", "07 | Preview")
         {
         }
 

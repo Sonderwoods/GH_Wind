@@ -17,7 +17,7 @@ namespace GHWind
         public GHDominantWinds()
          : base("Dominant Winds", "DomWinds",
              "Find predominant wind directions",
-             "GreenScenario", "01 | Toolkit")
+             "GH_Wind", "01 | Toolkit")
         {
         }
 
